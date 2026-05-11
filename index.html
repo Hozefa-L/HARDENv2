@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HARDEN-V2 Public Repository Tour</title>
+  <title>HARDEN-V2 Phase 7 Reviewer Artifact</title>
   <style>
     :root {
       color-scheme: light;
@@ -279,7 +279,7 @@
 <body>
   <div class="nav">
     <div class="nav-inner">
-      <div class="nav-title">HARDEN-V2 Public Tour</div>
+      <div class="nav-title">HARDEN-V2 Reviewer Artifact</div>
       <div class="nav-links">
         <a href="#overview">Overview</a>
         <a href="#pipeline">Pipeline</a>
@@ -293,31 +293,31 @@
 
   <main class="shell">
     <section class="hero" id="overview">
-      <div class="eyebrow">Public Repository Overview</div>
+      <div class="eyebrow">Public Research Artifact</div>
       <h1>HARDEN-V2</h1>
       <p class="lede">
-        HARDEN-V2 is a research codebase for smart contract vulnerability
-        detection from EVM runtime bytecode using enriched opcode features and
-        graph-based learning over control-flow and data-flow structure.
+        HARDEN-V2 is a standalone public research artifact for rerunning the
+        retained Phase 7 balanced smart-contract vulnerability benchmark from
+        the included public inputs.
       </p>
       <p class="lede">
-        This public repository keeps the active method code, benchmark metadata,
-        configuration path, and retained analysis entrypoint in a compact layout
-        that is easy to browse on GitHub and through the project website.
+        This public branch is organized for a reviewer: it keeps the active
+        code path, the retained split/feature/graph inputs, and one clear run
+        command instead of a broader private research workspace.
       </p>
 
       <div class="hero-grid">
         <div class="pillars">
           <h3>What this repo shows</h3>
-          <p>The architecture pipeline, benchmark shape, public file layout, and the active experiment path.</p>
+          <p>The retained Phase 7 inputs, the code path they exercise, and the single public rerun command.</p>
         </div>
         <div class="pillars">
           <h3>What this repo avoids</h3>
-          <p>Large checkpoints, private research workspace clutter, and heavyweight generated outputs.</p>
+          <p>Paper assets, local workspace clutter, and generated outputs that a reviewer should produce locally.</p>
         </div>
         <div class="pillars">
           <h3>Who this is for</h3>
-          <p>Researchers and readers who want a clear starting point before diving into the code and configs.</p>
+          <p>Reviewers and researchers who need a human-readable guide to the public Phase 7 artifact.</p>
         </div>
       </div>
     </section>
@@ -359,7 +359,7 @@
     </section>
 
     <section class="section" id="repo">
-      <h2>Repository tour</h2>
+      <h2>Repository map</h2>
       <p>
         The public tree is intentionally small. These are the main paths to start
         with first.
@@ -375,7 +375,7 @@
         </div>
         <div class="card">
           <h3><code>benchmark/</code></h3>
-          <p>Lightweight benchmark metadata describing the public benchmark scope without shipping the full artifact set.</p>
+          <p>Benchmark summary for the retained public Phase 7 input set.</p>
         </div>
         <div class="card">
           <h3><code>scripts/level4_analysis.py</code></h3>
@@ -383,11 +383,11 @@
         </div>
         <div class="card">
           <h3><code>requirements.txt</code></h3>
-          <p>Python package list for the public setup path, with EtherSolve handled separately.</p>
+          <p>Python dependency list for the public rerun path.</p>
         </div>
         <div class="card">
           <h3><code>README.md</code></h3>
-          <p>The markdown companion for readers who prefer a concise text-first explanation of the same public surface.</p>
+          <p>The text-first reviewer guide for the same public artifact shown on this page.</p>
         </div>
       </div>
     </section>
@@ -395,8 +395,8 @@
     <section class="section" id="benchmark">
       <h2>Benchmark snapshot</h2>
       <p>
-        The public metadata layer describes the retained <span class="inline-code">clean_default</span>
-        benchmark variant without embedding the full curated dataset.
+         The public artifact retains the <span class="inline-code">clean_default</span>
+         benchmark variant together with the split files, feature tables, and graph inputs needed by the current Phase 7 path.
       </p>
       <div class="stats">
         <div class="stat">
@@ -428,10 +428,10 @@
     </section>
 
     <section class="section" id="run">
-      <h2>Run path</h2>
+      <h2>Phase 7 rerun path</h2>
       <p>
-        The public branch keeps a single clear path for environment setup,
-        active experiments, and retained analysis.
+        The public branch keeps one reviewer-facing run path: install the
+        dependencies, execute Phase 7, and inspect the generated outputs.
       </p>
       <div class="commands">
         <div class="command">
@@ -439,17 +439,16 @@
           <pre><code>pip install -r requirements.txt</code></pre>
         </div>
         <div class="command">
-          <h3>2. Install EtherSolve for preprocessing workflows</h3>
-          <pre><code>wget https://github.com/SeUniVr/EtherSolve/releases/download/v1.0/EtherSolve.jar
-mkdir -p tools/EtherSolve
-mv EtherSolve.jar tools/EtherSolve/</code></pre>
-        </div>
-        <div class="command">
-          <h3>3. Run the active experiment configuration</h3>
+          <h3>2. Run the retained public experiment</h3>
           <pre><code>python -m src.training.run_experiments --config configs/phase7_balanced.yaml</code></pre>
         </div>
         <div class="command">
-          <h3>4. Run the retained analysis script</h3>
+          <h3>3. Review generated outputs</h3>
+          <pre><code>checkpoints/phase7_balanced/
+reports/phase7_balanced/</code></pre>
+        </div>
+        <div class="command">
+          <h3>4. Optional aggregate analysis</h3>
           <pre><code>python scripts/level4_analysis.py --manifest reports/phase7_balanced/phase7_run_manifest.json</code></pre>
         </div>
       </div>
@@ -459,8 +458,8 @@ mv EtherSolve.jar tools/EtherSolve/</code></pre>
       <h2>Start here</h2>
       <div class="note">
         <p>
-          Use this page for a visual tour of the repository, then jump into the
-          code and commands through the public README on GitHub.
+          Use this page as a reviewer-facing summary of the public artifact, then
+          jump into the GitHub README for the exact command-line workflow.
         </p>
         <p>
           GitHub repository: <a href="https://github.com/Hozefa-L/HARDENv2">HARDEN-V2</a><br>
@@ -470,7 +469,7 @@ mv EtherSolve.jar tools/EtherSolve/</code></pre>
     </section>
 
     <div class="footer">
-      HARDEN-V2 public repository tour
+      HARDEN-V2 Phase 7 reviewer artifact
     </div>
   </main>
 </body>

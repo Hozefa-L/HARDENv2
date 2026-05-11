@@ -1,7 +1,6 @@
 # Benchmark Metadata
 
-This public repository ships a lightweight description of the benchmark used in
-the Phase 7 balanced experiments without shipping the full curated artifact set.
+This public repository ships the benchmark inputs required for the retained Phase 7 rerun path.
 
 ## Scope
 
@@ -12,13 +11,24 @@ the Phase 7 balanced experiments without shipping the full curated artifact set.
 - Split counts: train 1,749 / val 219 / test 218
 - Source breakdown: 1,814 CGT-only / 363 DAppSCAN-only / 9 shared
 
-## What is intentionally omitted
+## Included public inputs
 
-The full curated graphs, feature matrices, checkpoints, and generated reports
-are not included in this first public repository push. This repository is meant
-to show the architecture pipeline and the active experiment path clearly.
+- the retained split files under `data/splits/main_benchmark/`
+- the retained `clean_default` variant manifest used by Phase 7
+- the retained feature tables under `data/features/main_benchmark/`
+- the retained graph artifact directory used by graph-based models
+- the minimal Phase 2 and Phase 3 manifests needed to resolve those assets
+
+## Not included
+
+- generated Phase 7 checkpoints
+- generated Phase 7 reports
+- unrelated historical artifacts, paper files, and local workspace material
 
 ## Public run path
 
-Use `configs/phase7_balanced.yaml` as the active experiment configuration and
-`scripts/level4_analysis.py` as the retained aggregate-analysis script.
+Use `configs/phase7_balanced.yaml` with:
+
+```bash
+python -m src.training.run_experiments --config configs/phase7_balanced.yaml
+```

@@ -1,0 +1,38 @@
+{
+  "run_started_utc": "2026-03-16T18:01:16.207249+00:00",
+  "run_finished_utc": "2026-03-16T18:12:00.333414+00:00",
+  "entrypoint": "python -m src.features.build_phase3_features --config configs/phase3.yaml",
+  "config_path": "configs/phase3.yaml",
+  "inputs": {
+    "phase2_graph_builder_run_manifest_json": "reports/phase2/graph_builder_run_manifest.json",
+    "contracts_parquet": "data/curated/main_benchmark_contracts.parquet",
+    "labels_parquet": "data/curated/main_benchmark_labels.parquet",
+    "graph_index_parquet": "data/curated/main_benchmark_graph_index.parquet",
+    "graphs_dir": "data/curated/graphs/phase2_task5_20260309T161122Z",
+    "instructions_parquet": "data/curated/phase2_instructions.parquet",
+    "split_root": "data/splits/main_benchmark"
+  },
+  "outputs": {
+    "feature_index_parquet": "data/features/main_benchmark/phase3_feature_index.parquet",
+    "opcode_text_corpus_parquet": "data/features/main_benchmark/opcode_text_corpus.parquet",
+    "codebert_features_parquet": "data/features/main_benchmark/codebert_features.parquet",
+    "graph_level_features_parquet": "data/features/main_benchmark/graph_level_features.parquet",
+    "tfidf_features_parquet": "data/features/main_benchmark/tfidf_features.parquet",
+    "pattern_features_parquet": "data/features/main_benchmark/pattern_features.parquet",
+    "report_json": "reports/phase3/feature_extraction_report_20260316T181200Z.json",
+    "dataset_card_md": "reports/phase3/feature_dataset_card_20260316T181200Z.md",
+    "run_manifest_json": "reports/phase3/phase3_run_manifest_20260316T181200Z.json"
+  },
+  "summary": {
+    "contracts_total": 2186,
+    "graph_unavailable_count": 0,
+    "feature_row_counts": {
+      "feature_index": 2186,
+      "opcode_text_corpus": 2186,
+      "codebert_features": 2186,
+      "graph_level_features": 2186,
+      "tfidf_features": 2186,
+      "pattern_features": 2186
+    }
+  }
+}

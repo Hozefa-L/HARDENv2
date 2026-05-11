@@ -1,0 +1,30 @@
+{
+  "run_started_utc": "2026-03-09T16:11:10.834003+00:00",
+  "run_finished_utc": "2026-03-09T16:14:45.772539+00:00",
+  "entrypoint": "python -m src.preprocessing.graph_builder --config configs/phase2.yaml",
+  "config_path": "configs/phase2.yaml",
+  "inputs": {
+    "contracts_parquet": "data/curated/main_benchmark_contracts.parquet",
+    "labels_parquet": "data/curated/main_benchmark_labels.parquet",
+    "instructions_parquet": "data/curated/phase2_instructions.parquet",
+    "basic_blocks_parquet": "data/curated/phase2_basic_blocks.parquet",
+    "cfg_nodes_parquet": "data/curated/phase2_cfg_nodes.parquet",
+    "cfg_edges_parquet": "data/curated/phase2_cfg_edges.parquet",
+    "dfg_edges_parquet": "data/curated/phase2_dfg_edges.parquet"
+  },
+  "outputs": {
+    "graph_index_parquet": "data/curated/main_benchmark_graph_index.parquet",
+    "graphs_dir": "data/curated/graphs/phase2_task5_20260309T161122Z",
+    "graph_quality_report_json": "reports/phase2/graph_quality_report.json",
+    "preprocessing_summary_md": "reports/phase2/preprocessing_summary.md",
+    "variant_manifests_dir": "data/splits/main_benchmark/manifests/phase2_task5_20260309T161122Z",
+    "run_manifest_json": "reports/phase2/graph_builder_run_manifest.json"
+  },
+  "summary": {
+    "contracts_processed": 2186,
+    "graph_build_success_count": 1823,
+    "cfg_success_count": 1823,
+    "dfg_success_count": 1823,
+    "empty_graph_count": 363
+  }
+}
