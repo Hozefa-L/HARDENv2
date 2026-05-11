@@ -16,7 +16,7 @@ This public branch is organized for a reviewer who wants one clear experiment pa
 | `configs/phase7_balanced.yaml` | Final public Phase 7 experiment configuration |
 | `data/splits/main_benchmark/` | Train, validation, test splits and the retained `clean_default` variant manifest |
 | `data/features/main_benchmark/` | Feature tables required by the public Phase 7 run |
-| `data/curated/graphs/phase2_task5_20260309T161122Z/` | Graph artifacts consumed by the graph-based models |
+| `data/curated/graphs/phase2_task5_20260316T081319Z/` | Graph artifacts consumed by the graph-based models |
 | `reports/phase2/graph_builder_run_manifest.json` | Manifest that locates the retained graph artifact directory |
 | `reports/phase3/phase3_run_manifest.json` | Manifest that locates the retained feature inputs |
 | `benchmark/` | Benchmark summary and public metadata |
@@ -54,7 +54,3 @@ python scripts/level4_analysis.py --manifest reports/phase7_balanced/phase7_run_
 ## Optional tooling
 
 EtherSolve is not required for the published Phase 7 rerun path. It is only relevant if you want to revisit preprocessing workflows outside the retained reviewer artifact.
-
-## Public scope
-
-This branch is intended to contain the active code path plus the minimum public data and manifest surface needed to rerun Phase 7. It does not try to mirror the entire private research workspace.

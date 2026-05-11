@@ -1,6 +1,6 @@
 # Benchmark Metadata
 
-This public repository ships the benchmark inputs required for the retained Phase 7 rerun path.
+This directory summarizes the retained benchmark metadata for the public Phase 7 rerun path. The actual retained run inputs live under `data/` and `reports/`.
 
 ## Scope
 
@@ -11,7 +11,7 @@ This public repository ships the benchmark inputs required for the retained Phas
 - Split counts: train 1,749 / val 219 / test 218
 - Source breakdown: 1,814 CGT-only / 363 DAppSCAN-only / 9 shared
 
-## Included public inputs
+## Retained public inputs
 
 - the retained split files under `data/splits/main_benchmark/`
 - the retained `clean_default` variant manifest used by Phase 7
