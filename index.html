@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HARDEN-V2 Public Repository Tour</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-alt: #eef3ff;
+      --border: #d7dfef;
+      --text: #142033;
+      --muted: #4e5f78;
+      --accent: #2b5cff;
+      --accent-soft: #dfe8ff;
+      --shadow: 0 14px 36px rgba(20, 32, 51, 0.08);
+      --radius: 18px;
+      --max: 1160px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .shell {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      margin-bottom: 24px;
+      background: rgba(245, 247, 251, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(215, 223, 239, 0.9);
+    }
+
+    .nav-inner {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-title {
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .nav-links a {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+
+    .hero,
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 40px;
+      margin-bottom: 28px;
+      background:
+        linear-gradient(135deg, rgba(43, 92, 255, 0.08), rgba(43, 92, 255, 0.02)),
+        var(--surface);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 14px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+      line-height: 1.2;
+    }
+
+    h1 {
+      margin-bottom: 12px;
+      font-size: clamp(2rem, 4vw, 3.4rem);
+    }
+
+    h2 {
+      margin-bottom: 10px;
+      font-size: clamp(1.5rem, 2.4vw, 2rem);
+    }
+
+    .lede,
+    .section p,
+    .section li {
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .hero-grid,
+    .cards,
+    .stats,
+    .commands {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-top: 28px;
+    }
+
+    .pillars,
+    .card,
+    .stat,
+    .command,
+    .note {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .section {
+      padding: 30px;
+      margin-bottom: 22px;
+    }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 22px;
+    }
+
+    .step {
+      position: relative;
+      padding: 18px;
+      border-radius: 16px;
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+    }
+
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      margin-bottom: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .cards {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      margin-top: 20px;
+    }
+
+    .card code,
+    .inline-code {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 8px;
+      background: rgba(20, 32, 51, 0.08);
+      color: var(--text);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 0.92rem;
+    }
+
+    .stats {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      margin-top: 18px;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .swc-list {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .swc {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface-alt);
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .commands {
+      grid-template-columns: 1fr;
+      margin-top: 20px;
+    }
+
+    pre {
+      overflow-x: auto;
+      margin: 0;
+      padding: 14px;
+      border-radius: 14px;
+      background: #101827;
+      color: #f3f6ff;
+      font-size: 0.92rem;
+    }
+
+    .footer {
+      padding: 12px 0 36px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 720px) {
+      .shell,
+      .nav-inner {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .hero,
+      .section {
+        padding: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <div class="nav-inner">
+      <div class="nav-title">HARDEN-V2 Public Tour</div>
+      <div class="nav-links">
+        <a href="#overview">Overview</a>
+        <a href="#pipeline">Pipeline</a>
+        <a href="#repo">Repo Map</a>
+        <a href="#benchmark">Benchmark</a>
+        <a href="#run">Run Path</a>
+        <a href="#start">Start Here</a>
+      </div>
+    </div>
+  </div>
+
+  <main class="shell">
+    <section class="hero" id="overview">
+      <div class="eyebrow">Public Repository Overview</div>
+      <h1>HARDEN-V2</h1>
+      <p class="lede">
+        HARDEN-V2 is a research codebase for smart contract vulnerability
+        detection from EVM runtime bytecode using enriched opcode features and
+        graph-based learning over control-flow and data-flow structure.
+      </p>
+      <p class="lede">
+        This public repository keeps the active method code, benchmark metadata,
+        configuration path, and retained analysis entrypoint in a compact layout
+        that is easy to browse on GitHub and through the project website.
+      </p>
+
+      <div class="hero-grid">
+        <div class="pillars">
+          <h3>What this repo shows</h3>
+          <p>The architecture pipeline, benchmark shape, public file layout, and the active experiment path.</p>
+        </div>
+        <div class="pillars">
+          <h3>What this repo avoids</h3>
+          <p>Large checkpoints, private research workspace clutter, and heavyweight generated outputs.</p>
+        </div>
+        <div class="pillars">
+          <h3>Who this is for</h3>
+          <p>Researchers and readers who want a clear starting point before diving into the code and configs.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pipeline">
+      <h2>Architecture pipeline</h2>
+      <p>
+        The public repo preserves the active path from benchmark construction to
+        experiment analysis. Each stage below maps directly to code that remains
+        in the repository.
+      </p>
+      <div class="pipeline">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Curation</h3>
+          <p>Curate the CGT + DAppSCAN runtime-bytecode benchmark and harmonize labels.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Preprocessing</h3>
+          <p>Build heterogeneous control-flow and data-flow graphs directly from runtime bytecode.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Features</h3>
+          <p>Extract enriched opcode features, including TF-IDF and expert vulnerability patterns.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <h3>Models</h3>
+          <p>Train OpcodeGT alongside retained classical and neural baseline models.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">5</div>
+          <h3>Evaluation</h3>
+          <p>Aggregate run outputs and summarize publication-facing metrics with the retained analysis script.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="repo">
+      <h2>Repository tour</h2>
+      <p>
+        The public tree is intentionally small. These are the main paths to start
+        with first.
+      </p>
+      <div class="cards">
+        <div class="card">
+          <h3><code>src/</code></h3>
+          <p>Active curation, preprocessing, feature extraction, models, training, and evaluation code.</p>
+        </div>
+        <div class="card">
+          <h3><code>configs/</code></h3>
+          <p>The active configuration chain: <span class="inline-code">phase4.yaml</span>, <span class="inline-code">phase5.yaml</span>, and <span class="inline-code">phase7_balanced.yaml</span>.</p>
+        </div>
+        <div class="card">
+          <h3><code>benchmark/</code></h3>
+          <p>Lightweight benchmark metadata describing the public benchmark scope without shipping the full artifact set.</p>
+        </div>
+        <div class="card">
+          <h3><code>scripts/level4_analysis.py</code></h3>
+          <p>The retained aggregate-analysis entrypoint for summarizing experiment outputs.</p>
+        </div>
+        <div class="card">
+          <h3><code>requirements.txt</code></h3>
+          <p>Python package list for the public setup path, with EtherSolve handled separately.</p>
+        </div>
+        <div class="card">
+          <h3><code>README.md</code></h3>
+          <p>The markdown companion for readers who prefer a concise text-first explanation of the same public surface.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="benchmark">
+      <h2>Benchmark snapshot</h2>
+      <p>
+        The public metadata layer describes the retained <span class="inline-code">clean_default</span>
+        benchmark variant without embedding the full curated dataset.
+      </p>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value">2,186</div>
+          <div>Contracts</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">1,749 / 219 / 218</div>
+          <div>Train / Val / Test split</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">1,814 / 363 / 9</div>
+          <div>CGT-only / DAppSCAN-only / shared</div>
+        </div>
+      </div>
+
+      <div class="swc-list" aria-label="Evaluated SWCs">
+        <span class="swc">SWC-101</span>
+        <span class="swc">SWC-103</span>
+        <span class="swc">SWC-104</span>
+        <span class="swc">SWC-107</span>
+        <span class="swc">SWC-113</span>
+        <span class="swc">SWC-114</span>
+        <span class="swc">SWC-115</span>
+        <span class="swc">SWC-120</span>
+        <span class="swc">SWC-128</span>
+        <span class="swc">SWC-135</span>
+      </div>
+    </section>
+
+    <section class="section" id="run">
+      <h2>Run path</h2>
+      <p>
+        The public branch keeps a single clear path for environment setup,
+        active experiments, and retained analysis.
+      </p>
+      <div class="commands">
+        <div class="command">
+          <h3>1. Install Python dependencies</h3>
+          <pre><code>pip install -r requirements.txt</code></pre>
+        </div>
+        <div class="command">
+          <h3>2. Install EtherSolve for preprocessing workflows</h3>
+          <pre><code>wget https://github.com/SeUniVr/EtherSolve/releases/download/v1.0/EtherSolve.jar
+mkdir -p tools/EtherSolve
+mv EtherSolve.jar tools/EtherSolve/</code></pre>
+        </div>
+        <div class="command">
+          <h3>3. Run the active experiment configuration</h3>
+          <pre><code>python -m src.training.run_experiments --config configs/phase7_balanced.yaml</code></pre>
+        </div>
+        <div class="command">
+          <h3>4. Run the retained analysis script</h3>
+          <pre><code>python scripts/level4_analysis.py --manifest reports/phase7_balanced/phase7_run_manifest.json</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="start">
+      <h2>Start here</h2>
+      <div class="note">
+        <p>
+          Use this page for a visual tour of the repository, then jump into the
+          code and commands through the public README on GitHub.
+        </p>
+        <p>
+          GitHub repository: <a href="https://github.com/Hozefa-L/HARDENv2">HARDEN-V2</a><br>
+          Markdown guide: <a href="https://github.com/Hozefa-L/HARDENv2/blob/main/README.md">README.md</a>
+        </p>
+      </div>
+    </section>
+
+    <div class="footer">
+      HARDEN-V2 public repository tour
+    </div>
+  </main>
+</body>
+</html>
