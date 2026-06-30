@@ -1,0 +1,89 @@
+main_benchmark:
+  swc_ids:
+  - 101
+  - 103
+  - 104
+  - 107
+  - 113
+  - 114
+  - 115
+  - 120
+  - 128
+  - 135
+inputs:
+  phase4_config_yaml: configs/phase4.yaml
+  phase5_config_yaml: configs/phase5.yaml
+  variant_manifests_dir: data/splits/main_benchmark/manifests/phase2_task5_20260316T081319Z
+  feature_index_parquet: data/features/main_benchmark/phase3_feature_index_10swc.parquet
+matrix:
+  opcodegt_modes:
+  - fused
+  baselines:
+    - gcn_baseline
+    - classical_rf
+  dataset_variants:
+  - clean_default_25
+  - clean_default_50
+  - clean_default_75
+  - clean_default
+  seeds:
+  - 42
+  - 123
+  - 456
+  - 789
+  - 2024
+training:
+  batch_size: 32
+  lr: 0.0005
+  weight_decay: 0.01
+  max_steps: 5000
+  num_workers: 0
+  device: cuda:1
+  decision_threshold: 0.5
+  eval_every: 250
+  patience: 15
+  early_stopping: true
+  run_timeout_seconds: 3600
+balancing:
+  use_weighted_sampler: true
+  max_oversample_ratio: 20.0
+  pos_weight_cap: 100
+  use_per_swc_threshold: true
+  threshold_sweep_steps: 17
+execution:
+  resume: true
+  rerun_failed: true
+  fail_fast: false
+models:
+  opcodegt:
+    hidden_dim: 256
+    dropout: 0.1
+    architecture: opcodegt_v2
+    use_hmpgt: true
+    use_cross_attention: true
+    use_label_attention: true
+    cfg_only: false
+    num_heads: 8
+    num_edge_types: 9
+    num_gnn_layers: 3
+  mlp:
+    hidden_dim: 256
+    dropout: 0.1
+  classical:
+    max_iter: 300
+    C: 1.0
+    solver: liblinear
+    random_state: 42
+enriched_features:
+  tfidf_features_parquet: data/features/main_benchmark/tfidf_features.parquet
+  pattern_features_parquet: data/features/main_benchmark/pattern_features.parquet
+outputs:
+  checkpoint_root: checkpoints/phase7_data_efficiency
+  models_dir: checkpoints/phase7_data_efficiency/models
+  metrics_dir: checkpoints/phase7_data_efficiency/metrics
+  report_dir: reports/phase7_data_efficiency
+  run_manifest_json: reports/phase7_data_efficiency/phase7_data_efficiency_run_manifest.json
+  results_summary_json: reports/phase7_data_efficiency/results_summary.json
+  per_swc_metrics_parquet: reports/phase7_data_efficiency/per_swc_metrics.parquet
+  optimal_thresholds_json: reports/phase7_data_efficiency/optimal_thresholds.json
+  figures_dir: reports/phase7_data_efficiency/figures

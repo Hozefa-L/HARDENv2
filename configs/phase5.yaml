@@ -1,0 +1,41 @@
+main_benchmark:
+  swc_ids: [101, 103, 104, 107, 113, 114, 115, 120, 128, 132, 135]
+
+run:
+  mode: smoke
+
+inputs:
+  phase4_config_yaml: configs/phase4.yaml
+
+baselines:
+  selected:
+    - classical_graph_lr
+    - mlp_opcode
+    - mlp_graph
+    - mlp_fusion_concat
+  mlp:
+    hidden_dim: 256
+    dropout: 0.1
+  classical:
+    max_iter: 200
+    C: 1.0
+    solver: liblinear
+    random_state: 42
+
+training:
+  batch_size: 16
+  lr: 0.0005
+  weight_decay: 0.0
+  max_steps: 1
+  device: cpu
+  seed: 42
+  num_workers: 0
+
+smoke:
+  train_subset_size: 64
+  eval_subset_size: 64
+
+outputs:
+  checkpoint_dir: checkpoints/phase5_smoke
+  smoke_report_json: reports/phase5/phase5_smoke_report.json
+  run_manifest_json: reports/phase5/phase5_run_manifest.json

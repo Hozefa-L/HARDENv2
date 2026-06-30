@@ -1,0 +1,57 @@
+main_benchmark:
+  swc_ids: [101, 103, 104, 107, 113, 114, 115, 120, 128, 132, 135]
+
+inputs:
+  phase4_config_yaml: configs/phase4.yaml
+  phase5_config_yaml: configs/phase5.yaml
+
+matrix:
+  opcodegt_modes:
+    - opcode_only
+    - graph_only
+    - fused
+  baselines:
+    - classical_graph_lr
+    - mlp_opcode
+    - mlp_graph
+    - mlp_fusion_concat
+  dataset_variants:
+    - clean_default
+    - no_proxy
+    - cgt_only
+    - combined_posaug
+  seeds: [42, 123, 456, 789, 2024]
+
+training:
+  batch_size: 32
+  lr: 0.000112
+  weight_decay: 0.00795
+  max_steps: 1000
+  num_workers: 0
+  device: cuda
+  decision_threshold: 0.5
+  early_stopping: true
+  eval_every: 50
+  patience: 7
+
+models:
+  opcodegt:
+    architecture: opcodegt_v2
+    hidden_dim: 256
+    dropout: 0.053
+    use_hmpgt: true
+    use_cross_attention: false
+    use_label_attention: true
+    num_heads: 4
+    num_gnn_layers: 3
+
+execution:
+  resume: true
+  rerun_failed: false
+  fail_fast: false
+
+outputs:
+  checkpoint_root: checkpoints/phase6
+  run_manifest_json: reports/phase6/phase6_run_manifest.json
+  metrics_dir: checkpoints/phase6/metrics
+  models_dir: checkpoints/phase6/models

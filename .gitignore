@@ -1,0 +1,32 @@
+# ---------------------------------------------------------------------------
+# HARDENv2 / CGT-DAppSCAN — public artifact .gitignore
+# Keeps the published repository clean: never commit upstream source mirrors,
+# virtual environments, build artifacts, or local working files.
+# ---------------------------------------------------------------------------
+
+# Upstream sources (user-supplied, not re-hosted — see DATA_PROVENANCE.md)
+data/raw/
+data/reconstructed/
+
+# Third-party tools fetched at setup time
+tools/EtherSolve/
+tools/**/venv/
+
+# Virtual environments
+hardvenv/
+venv/
+.venv/
+env/
+
+# Python caches and build output
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+build/
+dist/
+
+# OS / editor cruft
+.DS_Store
+*.swp

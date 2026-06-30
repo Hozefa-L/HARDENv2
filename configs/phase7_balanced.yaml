@@ -1,0 +1,113 @@
+## Phase 7 — Balanced Class Experiment Campaign
+## Builds on Phase 6 Level 4 but adds:
+##   - Per-SWC WeightedRandomSampler in training DataLoader
+##   - Raised pos_weight cap (100 vs previous 50)
+##   - Per-SWC threshold tuning on validation set
+##   - SWC-132 REMOVED: only 14 positives total (1 in test) — insufficient data
+## Models: top performers from Phase 6 + OpcodeGT modes × 5 seeds
+
+main_benchmark:
+  # SWC-132 excluded at the DATA level: removed from feature_index parquet.
+  # Only 14 positives total (1 in test) — statistically degenerate for evaluation.
+  swc_ids: [101, 103, 104, 107, 113, 114, 115, 120, 128, 135]
+
+inputs:
+  phase4_config_yaml: configs/phase4.yaml
+  phase5_config_yaml: configs/phase5.yaml
+  variant_manifests_dir: data/splits/main_benchmark/manifests/phase2_task5_20260316T081319Z
+  # Override feature index to the 10-SWC versioned parquet (SWC-132 removed at data level)
+  feature_index_parquet: data/features/main_benchmark/phase3_feature_index_10swc.parquet
+
+matrix:
+  opcodegt_modes:
+    - graph_only
+    - fused
+    - opcode_only
+  baselines:
+    - classical_rf
+    - classical_xgboost
+    - classical_lgbm
+    - classical_graph_lr
+    - mlp_opcode
+    - mlp_graph
+    - mlp_fusion_concat
+    - gcn_baseline
+    - gat_baseline
+    - bilstm_baseline
+    - codebert_classifier
+  dataset_variants:
+    - clean_default
+  seeds:
+    - 42
+    - 123
+    - 456
+    - 789
+    - 2024
+
+training:
+  batch_size: 32
+  lr: 0.0005
+  weight_decay: 0.01
+  max_steps: 5000
+  num_workers: 0
+  device: cuda:1
+  # Fixed threshold used for Macro-F1 reporting (per-SWC tuning done separately)
+  decision_threshold: 0.5
+  eval_every: 250
+  patience: 15
+  early_stopping: true
+  run_timeout_seconds: 3600
+
+# ---- Class balancing additions ----
+balancing:
+  # Replace shuffle=True with WeightedRandomSampler in training DataLoader
+  use_weighted_sampler: true
+  # Max per-sample oversample ratio (cap on upsampling extreme minority classes)
+  max_oversample_ratio: 20.0
+  # Raise pos_weight cap from 50 → 100 for neural models
+  pos_weight_cap: 100
+  # After training, tune per-SWC decision thresholds on val set
+  use_per_swc_threshold: true
+  # Threshold sweep grid: 0.05 to 0.90 in steps of 0.05
+  threshold_sweep_steps: 17
+
+execution:
+  resume: true
+  rerun_failed: true
+  fail_fast: false
+
+models:
+  opcodegt:
+    hidden_dim: 256
+    dropout: 0.1
+    architecture: opcodegt_v2
+    use_hmpgt: true
+    use_cross_attention: true
+    use_label_attention: true
+    cfg_only: false
+    num_heads: 8
+    num_edge_types: 9
+    num_gnn_layers: 3
+  mlp:
+    hidden_dim: 256
+    dropout: 0.1
+  classical:
+    max_iter: 300
+    C: 1.0
+    solver: liblinear
+    random_state: 42
+
+enriched_features:
+  tfidf_features_parquet: data/features/main_benchmark/tfidf_features.parquet
+  pattern_features_parquet: data/features/main_benchmark/pattern_features.parquet
+
+outputs:
+  checkpoint_root: checkpoints/phase7_balanced
+  models_dir: checkpoints/phase7_balanced/models
+  metrics_dir: checkpoints/phase7_balanced/metrics
+  report_dir: reports/phase7_balanced
+  run_manifest_json: reports/phase7_balanced/phase7_run_manifest.json
+  results_summary_json: reports/phase7_balanced/results_summary.json
+  per_swc_metrics_parquet: reports/phase7_balanced/per_swc_metrics.parquet
+  optimal_thresholds_json: reports/phase7_balanced/optimal_thresholds.json
+  figures_dir: reports/phase7_balanced/figures

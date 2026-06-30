@@ -1,0 +1,17 @@
+{
+  "benchmark_name": "HARDEN-V2 clean_default",
+  "contracts": 2186,
+  "evaluated_swc_ids": [101, 103, 104, 107, 113, 114, 115, 120, 128, 135],
+  "split_counts": {
+    "train": 1749,
+    "val": 219,
+    "test": 218
+  },
+  "source_breakdown": {
+    "cgt_only": 1814,
+    "dappscan_only": 363,
+    "both": 9
+  },
+  "config_path": "configs/phase7_balanced.yaml",
+  "retained_analysis_script": "scripts/level4_analysis.py"
+}

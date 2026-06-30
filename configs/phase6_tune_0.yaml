@@ -1,0 +1,75 @@
+execution:
+  fail_fast: false
+  rerun_failed: false
+  resume: true
+inputs:
+  phase4_config_yaml: configs/phase4.yaml
+  phase5_config_yaml: configs/phase5.yaml
+  variant_manifests_dir: data/splits/main_benchmark/manifests/phase2_task5_20260309T161122Z
+main_benchmark:
+  swc_ids:
+  - 101
+  - 103
+  - 104
+  - 107
+  - 113
+  - 114
+  - 115
+  - 120
+  - 128
+  - 132
+  - 135
+matrix:
+  baselines:
+  - classical_graph_lr
+  - mlp_opcode
+  - mlp_graph
+  - mlp_fusion_concat
+  dataset_variants:
+  - clean_default
+  - no_proxy
+  - cgt_only
+  - combined_posaug
+  opcodegt_modes:
+  - opcode_only
+  - graph_only
+  - fused
+  seeds:
+  - 42
+  - 123
+  - 456
+  - 789
+  - 2024
+models:
+  classical:
+    C: 1.0
+    max_iter: 200
+    random_state: 42
+    solver: liblinear
+  mlp:
+    dropout: 0.1
+    hidden_dim: 256
+  opcodegt:
+    dropout: 0.2
+    hidden_dim: 128
+    num_gnn_layers: 3
+    num_heads: 8
+outputs:
+  ablation_summary_json: reports/phase6/ablation_summary.json
+  checkpoint_root: checkpoints/phase6_tune/trial_0
+  figures_dir: reports/phase6/figures
+  final_tables_md: reports/phase6/final_tables.md
+  metrics_dir: checkpoints/phase6_tune/trial_0/metrics
+  models_dir: checkpoints/phase6_tune/trial_0/models
+  per_swc_metrics_parquet: reports/phase6/per_swc_metrics.parquet
+  report_dir: reports/phase6
+  results_summary_json: reports/phase6/results_summary.json
+  run_manifest_json: checkpoints/phase6_tune/trial_0/run_manifest.json
+training:
+  batch_size: 64
+  decision_threshold: 0.5
+  device: cuda
+  lr: 4.1059985108337346e-05
+  max_steps: 3000
+  num_workers: 0
+  weight_decay: 0.01

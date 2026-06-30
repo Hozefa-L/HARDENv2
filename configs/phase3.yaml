@@ -1,0 +1,27 @@
+main_benchmark:
+  swc_ids: [101, 103, 104, 107, 113, 114, 115, 120, 128, 132, 135]
+
+inputs:
+  phase2_graph_builder_run_manifest_json: reports/phase2/graph_builder_run_manifest.json
+  split_root: data/splits/main_benchmark
+
+outputs:
+  feature_index_parquet: data/features/main_benchmark/phase3_feature_index.parquet
+  opcode_text_corpus_parquet: data/features/main_benchmark/opcode_text_corpus.parquet
+  codebert_features_parquet: data/features/main_benchmark/codebert_features.parquet
+  graph_level_features_parquet: data/features/main_benchmark/graph_level_features.parquet
+  tfidf_features_parquet: data/features/main_benchmark/tfidf_features.parquet
+  pattern_features_parquet: data/features/main_benchmark/pattern_features.parquet
+  report_json: reports/phase3/feature_extraction_report.json
+  dataset_card_md: reports/phase3/feature_dataset_card.md
+  run_manifest_json: reports/phase3/phase3_run_manifest.json
+
+codebert:
+  model_name: microsoft/codebert-base
+  pooling: cls
+  max_length: 512
+  batch_size: 16
+  device: cuda
+  local_files_only: true
+  sliding_window: true
+  stride: 256

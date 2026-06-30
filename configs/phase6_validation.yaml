@@ -1,0 +1,57 @@
+main_benchmark:
+  swc_ids: [101, 103, 104, 107, 113, 114, 115, 120, 128, 132, 135]
+
+inputs:
+  phase4_config_yaml: configs/phase4_full.yaml
+  phase5_config_yaml: configs/phase5_full.yaml
+  variant_manifests_dir: data/splits/main_benchmark/manifests/phase2_task5_20260309T161122Z
+
+matrix:
+  opcodegt_modes:
+    - opcode_only
+    - graph_only
+    - fused
+  baselines:
+    - mlp_fusion_concat
+  dataset_variants:
+    - clean_default
+  seeds: [42]
+
+training:
+  batch_size: 64
+  lr: 0.0005
+  weight_decay: 0.01
+  max_steps: 500
+  num_workers: 0
+  device: cuda
+  decision_threshold: 0.5
+
+execution:
+  resume: false
+  rerun_failed: true
+  fail_fast: false
+
+models:
+  opcodegt:
+    hidden_dim: 256
+    dropout: 0.1
+  mlp:
+    hidden_dim: 256
+    dropout: 0.1
+  classical:
+    max_iter: 300
+    C: 1.0
+    solver: liblinear
+    random_state: 42
+
+outputs:
+  checkpoint_root: checkpoints/phase6_validation
+  models_dir: checkpoints/phase6_validation/models
+  metrics_dir: checkpoints/phase6_validation/metrics
+  report_dir: reports/phase6_validation
+  run_manifest_json: reports/phase6_validation/phase6_run_manifest.json
+  results_summary_json: reports/phase6_validation/results_summary.json
+  ablation_summary_json: reports/phase6_validation/ablation_summary.json
+  per_swc_metrics_parquet: reports/phase6_validation/per_swc_metrics.parquet
+  final_tables_md: reports/phase6_validation/final_tables.md
+  figures_dir: reports/phase6_validation/figures

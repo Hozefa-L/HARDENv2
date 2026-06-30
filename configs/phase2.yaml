@@ -1,0 +1,58 @@
+main_benchmark:
+  swc_ids: [101, 103, 104, 107, 113, 114, 115, 120, 128, 132, 135]
+
+inputs:
+  unified_contracts: data/curated/unified_contracts.parquet
+  unified_labels: data/curated/unified_labels.parquet
+  final_swc_recommendation_csv: reports/phase1/final_swc_recommendation.csv
+  phase1_audit_summary_md: reports/phase1/phase1_audit_summary.md
+  primary_splits_dir: data/splits/primary
+
+outputs:
+  contracts_parquet: data/curated/main_benchmark_contracts.parquet
+  labels_parquet: data/curated/main_benchmark_labels.parquet
+  split_root: data/splits/main_benchmark
+  dataset_card_md: reports/phase2/main_benchmark_dataset_card.md
+  summary_json: reports/phase2/main_benchmark_summary.json
+  run_manifest_json: reports/phase2/main_benchmark_run_manifest.json
+
+opcodes:
+  input_contracts: data/curated/main_benchmark_contracts.parquet
+  instructions_parquet: data/curated/phase2_instructions.parquet
+  basic_blocks_parquet: data/curated/phase2_basic_blocks.parquet
+  report_json: reports/phase2/opcode_preprocessing_report.json
+  run_manifest_json: reports/phase2/opcode_preprocessing_run_manifest.json
+
+cfg:
+  input_contracts: data/curated/main_benchmark_contracts.parquet
+  input_instructions: data/curated/phase2_instructions.parquet
+  ethersolve_jar: tools/EtherSolve.jar
+  ethersolve_timeout_seconds: 30
+  cfg_nodes_parquet: data/curated/phase2_cfg_nodes.parquet
+  cfg_edges_parquet: data/curated/phase2_cfg_edges.parquet
+  report_json: reports/phase2/cfg_report.json
+  run_manifest_json: reports/phase2/cfg_run_manifest.json
+
+dfg:
+  input_instructions: data/curated/phase2_instructions.parquet
+  input_basic_blocks: data/curated/phase2_basic_blocks.parquet
+  input_cfg_edges: data/curated/phase2_cfg_edges.parquet
+  dfg_edges_parquet: data/curated/phase2_dfg_edges.parquet
+  report_json: reports/phase2/dfg_report.json
+  run_manifest_json: reports/phase2/dfg_run_manifest.json
+
+graph:
+  input_contracts: data/curated/main_benchmark_contracts.parquet
+  input_labels: data/curated/main_benchmark_labels.parquet
+  input_instructions: data/curated/phase2_instructions.parquet
+  input_basic_blocks: data/curated/phase2_basic_blocks.parquet
+  input_cfg_nodes: data/curated/phase2_cfg_nodes.parquet
+  input_cfg_edges: data/curated/phase2_cfg_edges.parquet
+  input_dfg_edges: data/curated/phase2_dfg_edges.parquet
+  graph_artifact_format: pt
+  graph_index_parquet: data/curated/main_benchmark_graph_index.parquet
+  graphs_dir: data/curated/graphs
+  quality_report_json: reports/phase2/graph_quality_report.json
+  preprocessing_summary_md: reports/phase2/preprocessing_summary.md
+  variant_manifests_dir: data/splits/main_benchmark/manifests
+  run_manifest_json: reports/phase2/graph_builder_run_manifest.json

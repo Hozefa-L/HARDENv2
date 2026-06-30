@@ -1,0 +1,114 @@
+## Phase 6 — Level 3: OpcodeGT v2 Architecture Experiments
+## Heterogeneous Message-Passing Graph Transformer + Cross-Attention Fusion
+## + Label-Aware Attention Head
+
+main_benchmark:
+  swc_ids: [101, 103, 104, 107, 113, 114, 115, 120, 128, 132, 135]
+
+inputs:
+  phase4_config_yaml: configs/phase4.yaml
+  phase5_config_yaml: configs/phase5.yaml
+  variant_manifests_dir: data/splits/main_benchmark/manifests/phase2_task5_20260316T081319Z
+
+matrix:
+  opcodegt_modes:
+    - fused
+    - graph_only
+    - opcode_only
+  baselines: []  # Level 3 focuses on architecture comparison; reuse Level 2 baselines
+  dataset_variants:
+    - clean_default
+  seeds:
+    - 42
+
+training:
+  batch_size: 32
+  lr: 0.0005
+  weight_decay: 0.01
+  max_steps: 500
+  num_workers: 0
+  device: cuda
+  decision_threshold: 0.5
+
+execution:
+  resume: true
+  rerun_failed: true
+  fail_fast: false
+
+models:
+  opcodegt:
+    hidden_dim: 256
+    dropout: 0.1
+    # --- Level 3 v2 architecture settings ---
+    architecture: opcodegt_v2
+    use_hmpgt: true
+    use_cross_attention: true
+    use_label_attention: true
+    cfg_only: false
+    num_heads: 8
+    num_edge_types: 9
+    num_gnn_layers: 3
+  # Ablation variants (run separately or extend matrix)
+  opcodegt_ablation:
+    # Full v2 = all true (default above)
+    # GIN-only ablation (HMPGT off): use_hmpgt: false
+    # GatedFusion ablation (cross-attention off): use_cross_attention: false
+    # Linear head ablation (label-attention off): use_label_attention: false
+    # CFG-only ablation: cfg_only: true
+    variants:
+      - name: v2_full
+        architecture: opcodegt_v2
+        use_hmpgt: true
+        use_cross_attention: true
+        use_label_attention: true
+        cfg_only: false
+      - name: v2_no_hmpgt
+        architecture: opcodegt_v2
+        use_hmpgt: false
+        use_cross_attention: true
+        use_label_attention: true
+        cfg_only: false
+      - name: v2_no_cross_attention
+        architecture: opcodegt_v2
+        use_hmpgt: true
+        use_cross_attention: false
+        use_label_attention: true
+        cfg_only: false
+      - name: v2_no_label_attention
+        architecture: opcodegt_v2
+        use_hmpgt: true
+        use_cross_attention: true
+        use_label_attention: false
+        cfg_only: false
+      - name: v2_cfg_only
+        architecture: opcodegt_v2
+        use_hmpgt: true
+        use_cross_attention: true
+        use_label_attention: true
+        cfg_only: true
+      - name: simple_gin_fusion_baseline
+        architecture: simple_gin_fusion
+  mlp:
+    hidden_dim: 256
+    dropout: 0.1
+  classical:
+    max_iter: 300
+    C: 1.0
+    solver: liblinear
+    random_state: 42
+
+enriched_features:
+  tfidf_features_parquet: data/features/main_benchmark/tfidf_features.parquet
+  pattern_features_parquet: data/features/main_benchmark/pattern_features.parquet
+
+outputs:
+  checkpoint_root: checkpoints/phase6_level3
+  models_dir: checkpoints/phase6_level3/models
+  metrics_dir: checkpoints/phase6_level3/metrics
+  report_dir: reports/phase6_level3
+  run_manifest_json: reports/phase6_level3/phase6_run_manifest.json
+  results_summary_json: reports/phase6_level3/results_summary.json
+  ablation_summary_json: reports/phase6_level3/ablation_summary.json
+  per_swc_metrics_parquet: reports/phase6_level3/per_swc_metrics.parquet
+  final_tables_md: reports/phase6_level3/final_tables.md
+  figures_dir: reports/phase6_level3/figures

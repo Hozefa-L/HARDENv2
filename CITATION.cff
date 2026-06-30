@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use HARDENv2, please cite this repository and prefer a tagged archival release when one becomes available."
+title: "HARDENv2: Heterogeneous Graph Transformers with Enriched Opcode Features for Bytecode-Level Multi-Label Smart Contract Vulnerability Detection"
+type: software
+authors:
+  - family-names: Lakadawala
+    given-names: Hozefa
+    affiliation: Binghamton University
+  - family-names: Dzigbede
+    given-names: Komla
+    affiliation: Binghamton University
+  - family-names: Chen
+    given-names: Yu
+    affiliation: Binghamton University
+abstract: "HARDENv2 is a research codebase for bytecode-level multi-label smart contract vulnerability detection using heterogeneous graph structure and enriched opcode features over the CGT-DAppSCAN benchmark."
+repository-code: "https://github.com/Hozefa-L/HARDENv2"
+url: "https://github.com/Hozefa-L/HARDENv2"
+license: MIT
+keywords:
+  - smart contracts
+  - vulnerability detection
+  - bytecode
+  - graph neural networks
+  - heterogeneous graphs
+  - EVM

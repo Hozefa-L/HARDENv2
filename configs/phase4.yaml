@@ -1,0 +1,28 @@
+main_benchmark:
+  swc_ids: [101, 103, 104, 107, 113, 114, 115, 120, 128, 132, 135]
+
+run:
+  mode: smoke
+
+inputs:
+  phase3_run_manifest_json: reports/phase3/phase3_run_manifest.json
+
+model:
+  mode: fused
+  hidden_dim: 256
+  dropout: 0.1
+
+training:
+  batch_size: 16
+  lr: 0.0005
+  weight_decay: 0.0
+  max_steps: 1
+  device: cpu
+  seed: 42
+  num_workers: 0
+
+outputs:
+  checkpoint_dir: checkpoints/phase4_smoke
+  model_spec_md: reports/phase4/model_spec.md
+  smoke_report_json: reports/phase4/phase4_smoke_train_report.json
+  run_manifest_json: reports/phase4/phase4_run_manifest.json
