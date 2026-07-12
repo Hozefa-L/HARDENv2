@@ -1,21 +1,26 @@
-torch
-torchvision
-torchaudio
-torch-geometric
-transformers
-pyevmasm
-scikit-learn
-xgboost
-lightgbm
-pandas
-numpy
-matplotlib
-seaborn
-tensorboard
-pyyaml
-scipy
-imbalanced-learn
-iterative-stratification
-jupyter
-openpyxl
-pytest
+# Environment used for the paper's experiments.
+# Python 3.12; PyTorch built against CUDA 13.0 (the cu130 wheel).
+# A CPU-only PyTorch install is enough for the data checks and the classical
+# baselines; the neural configurations need a CUDA GPU (peak training memory
+# is about 8 GB, so a single 12 GB card is sufficient).
+torch==2.12.0
+torchvision==0.27.0
+torchaudio==2.11.0
+torch-geometric==2.7.0
+transformers==5.9.0
+pyevmasm==0.2.3
+scikit-learn==1.8.0
+xgboost==3.2.0
+lightgbm==4.6.0
+pandas==3.0.3
+numpy==2.4.6
+pyarrow==24.0.0
+scipy==1.17.1
+imbalanced-learn==0.14.1
+iterative-stratification==0.1.9
+matplotlib==3.10.9
+seaborn==0.13.2
+tensorboard==2.20.0
+pyyaml==6.0.3
+openpyxl==3.1.5
+pytest==9.0.3

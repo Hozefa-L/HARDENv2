@@ -21,6 +21,34 @@ This directory summarizes the benchmark scope used by HARDENv2.
 | `data/splits/main_benchmark/test.parquet` | Test split |
 | `data/splits/main_benchmark/manifests/phase2_task5_20260316T081319Z/clean_default.json` | Split manifest for the retained benchmark scope |
 
+## Label Conventions
+
+Two encodings of the same labels appear in the published files, and they are
+consistent with each other.
+
+- The split parquets use one nullable integer column per SWC (`swc_101` ...
+  `swc_135`), where 1 is a known positive, 0 a known negative, and NA an
+  unassessed contract-label pair.
+- The feature index (`data/features/main_benchmark/phase3_feature_index_10swc.parquet`)
+  uses plain integers with -1 for unassessed, plus boolean `*_assessed` mask
+  columns.
+
+SWC-132 was dropped from the evaluated set because the corpus contains only 14
+positives (a single one in test). Traces of it remain for transparency rather
+than for use. The split parquets keep a `swc_132` column, the graph tensors
+carry 11-slot `y`/`y_mask` vectors (SWC-132 at slot 9), and the packed
+`label_vector`/`label_mask` strings and `label_positive_count`/
+`label_assessed_count` columns in the feature index are computed over all 11
+slots. The training and evaluation code reads only the ten per-SWC columns, so
+none of this affects reported results, but a consumer parsing the packed
+vectors should expect 11 entries. A related consequence is that 38 contracts
+are assessed only for SWC-132; they remain in the benchmark counts but
+contribute no assessed label among the evaluated ten.
+
+The split files carry contract fingerprints, source metadata, labels, and
+masks. They contain no raw bytecode; use the reconstruction path below when
+the bytecode itself is needed.
+
 ## Bytecode Reconstruction (Layer 2)
 
 `contract_identifiers.csv` lists all 2,186 contracts (1,814 CGT-only, 363

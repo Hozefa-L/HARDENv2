@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="HARDENv2 publishes code, curated graph artifacts, retained feature tables, benchmark splits, and evaluation summaries for bytecode-level multi-label smart contract vulnerability detection.">
+  <meta name="description" content="CGT-DAppSCAN is a reproducible bytecode-level benchmark of 2,186 Ethereum smart contracts across ten SWC weakness classes. HARDENv2 is the graph model family and evaluation pipeline compared against tree ensembles, neural baselines, and Mythril on it.">
   <meta name="theme-color" content="#a8461f">
-  <meta property="og:title" content="HARDENv2 Research Artifact">
-  <meta property="og:description" content="Research artifact for bytecode-level smart contract vulnerability detection with curated graph artifacts, benchmark splits, and evaluation bundles.">
+  <meta property="og:title" content="HARDENv2 / CGT-DAppSCAN">
+  <meta property="og:description" content="A reproducible bytecode benchmark and empirical study of smart-contract vulnerability detectors. 2,186 contracts, ten SWC classes, everything in one repository.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://hozefa-l.github.io/HARDENv2/">
   <link rel="canonical" href="https://hozefa-l.github.io/HARDENv2/">
-  <title>HARDENv2 Research Artifact</title>
+  <title>HARDENv2 / CGT-DAppSCAN</title>
   <style>
     :root {
       color-scheme: light;
@@ -190,9 +190,9 @@
     }
 
     h1 {
-      max-width: 15ch;
+      max-width: 18ch;
       margin-bottom: 14px;
-      font-size: clamp(2.4rem, 5vw, 4.6rem);
+      font-size: clamp(2.1rem, 4.4vw, 3.9rem);
     }
 
     h2 {
@@ -320,6 +320,11 @@
       border-bottom: 0;
     }
 
+    .num {
+      font-variant-numeric: tabular-nums;
+      color: var(--ink);
+    }
+
     pre {
       overflow-x: auto;
       margin: 18px 0 0;
@@ -388,11 +393,11 @@
     <div class="nav-inner">
       <div class="brand">HARDENv2</div>
       <div class="nav-links">
-        <a href="#scope">Repository</a>
+        <a href="#start">Get Started</a>
         <a href="#benchmark">Benchmark</a>
-        <a href="#dataset">Dataset</a>
-        <a href="#layout">Layout</a>
-        <a href="#workflow">Workflow</a>
+        <a href="#results">Results</a>
+        <a href="#layout">Repository</a>
+        <a href="#provenance">Provenance</a>
         <a href="#citation">Citation</a>
       </div>
     </div>
@@ -401,286 +406,258 @@
   <main class="shell">
     <section class="hero">
       <div class="hero-copy">
-        <div class="eyebrow">Official Research Repository</div>
-        <h1>HARDENv2</h1>
+        <div class="eyebrow">Benchmark and Code Release</div>
+        <h1>A reproducible bytecode benchmark for smart-contract vulnerability detection</h1>
         <p>
-          HARDENv2 is a bytecode-level smart contract vulnerability detection
-          project built around heterogeneous graph structure, enriched opcode
-          features, and multi-label prediction across ten SWC categories.
+          This repository accompanies the paper <em>A Reproducible Bytecode
+          Benchmark and Empirical Study of Smart-Contract Vulnerability
+          Detectors</em>. It ships CGT-DAppSCAN, a multi-label benchmark of
+          2,186 Ethereum contracts across ten SWC weakness classes, together
+          with HARDENv2, the heterogeneous-graph model family and the full
+          evaluation pipeline used in the study.
         </p>
         <p>
-          This site highlights the retained public artifact surface: code,
-          curated graph artifacts, benchmark splits, retained feature tables,
-          and publication-facing evaluation bundles.
+          The benchmark data is committed directly in the repository, so a
+          single clone reproduces the paper's numbers. No external download,
+          RPC node, or third-party dataset is required for the main path.
         </p>
 
         <div class="hero-actions">
-          <a class="button" href="https://github.com/Hozefa-L/HARDENv2" target="_blank" rel="noreferrer">View Repository</a>
-          <a class="button button-secondary" href="#dataset">Browse Dataset</a>
-          <a class="button button-secondary" href="https://github.com/Hozefa-L/HARDENv2/blob/main/CITATION.cff" target="_blank" rel="noreferrer">Open Citation File</a>
+          <a class="button" href="https://github.com/Hozefa-L/HARDENv2" target="_blank" rel="noreferrer">View on GitHub</a>
+          <a class="button button-secondary" href="#start">Get Started</a>
+          <a class="button button-secondary" href="https://github.com/Hozefa-L/HARDENv2/blob/main/DATA_PROVENANCE.md" target="_blank" rel="noreferrer">Data Provenance</a>
         </div>
       </div>
 
       <div class="hero-grid">
         <div class="card">
-          <h3>Research Focus</h3>
-          <p>Bytecode-only multi-label vulnerability detection with CFG and DFG-aware heterogeneous graph modeling.</p>
+          <h3>The Benchmark</h3>
+          <p>2,186 contracts merged from the Consolidated Ground Truth and DAppSCAN corpora, with fixed splits, graph tensors, feature tables, and per-label assessment masks.</p>
         </div>
         <div class="card">
-          <h3>Benchmark</h3>
-          <p>CGT-DAppSCAN with 2,186 contracts and ten evaluated SWC categories.</p>
+          <h3>The Models</h3>
+          <p>HARDENv2 graph transformers with enriched opcode features, evaluated against tree ensembles, MLP and sequence baselines, flat GNNs, and Mythril.</p>
         </div>
         <div class="card">
-          <h3>Released Materials</h3>
-          <p>Benchmark summaries, the 2,186-contract curated graph dataset, benchmark splits, Phase 6 and Phase 7 report bundles, Phase 7 metrics, and Mythril comparison outputs.</p>
+          <h3>The Finding</h3>
+          <p>Under a fixed bytecode-only protocol, tuned tree ensembles lead the benchmark; the study quantifies where graph structure helps and where it does not.</p>
         </div>
       </div>
     </section>
 
-    <section class="section" id="scope">
-      <h2>Repository</h2>
+    <section class="section" id="start">
+      <h2>Get Started</h2>
       <p class="section-intro">
-        The public artifact brings together the codebase, benchmark metadata,
-        curated dataset files, retained experiment configurations, phase-level
-        reports, and evaluation metrics used for the clean_default benchmark
-        slice.
+        Clone, install the pinned environment (Python 3.12), and confirm the
+        data is intact. The integrity check takes about 30 seconds on CPU.
       </p>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Area</th>
-            <th>Representative Contents</th>
-            <th>Purpose</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td data-label="Area">Source code and configs</td>
-            <td data-label="Representative Contents">
-              <div class="resource-list">
-                <a href="https://github.com/Hozefa-L/HARDENv2/tree/main/src" target="_blank" rel="noreferrer"><code class="path-code">src/</code></a>
-                <a href="https://github.com/Hozefa-L/HARDENv2/tree/main/scripts" target="_blank" rel="noreferrer"><code class="path-code">scripts/</code></a>
-                <a href="https://github.com/Hozefa-L/HARDENv2/tree/main/configs" target="_blank" rel="noreferrer"><code class="path-code">configs/</code></a>
-              </div>
-            </td>
-            <td data-label="Purpose">Training, evaluation, preprocessing, and experiment definition.</td>
-          </tr>
-          <tr>
-            <td data-label="Area">Benchmark metadata</td>
-            <td data-label="Representative Contents">
-              <div class="resource-list">
-                <a href="https://github.com/Hozefa-L/HARDENv2/blob/main/benchmark/clean_default_summary.json" target="_blank" rel="noreferrer"><code class="path-code">benchmark/clean_default_summary.json</code></a>
-                <a href="https://github.com/Hozefa-L/HARDENv2/blob/main/benchmark/README.md" target="_blank" rel="noreferrer"><code class="path-code">benchmark/README.md</code></a>
-              </div>
-            </td>
-            <td data-label="Purpose">Defines the retained CGT-DAppSCAN evaluation scope.</td>
-          </tr>
-          <tr>
-            <td data-label="Area">Curated dataset</td>
-            <td data-label="Representative Contents">
-              <div class="resource-list">
-                <a href="https://github.com/Hozefa-L/HARDENv2/tree/main/data/curated/graphs/phase2_task5_20260309T161122Z" target="_blank" rel="noreferrer"><code class="path-code">data/curated/graphs/phase2_task5_20260309T161122Z/</code></a>
-                <a href="https://github.com/Hozefa-L/HARDENv2/tree/main/data/splits/main_benchmark" target="_blank" rel="noreferrer"><code class="path-code">data/splits/main_benchmark/</code></a>
-                <a href="https://github.com/Hozefa-L/HARDENv2/tree/main/data/features" target="_blank" rel="noreferrer"><code class="path-code">data/features/</code></a>
-              </div>
-            </td>
-            <td data-label="Purpose">Published graph tensors, split files, and retained feature tables for the clean_default benchmark.</td>
-          </tr>
-          <tr>
-            <td data-label="Area">Phase reports</td>
-            <td data-label="Representative Contents">
-              <div class="resource-list">
-                <a href="https://github.com/Hozefa-L/HARDENv2/tree/main/reports/phase6_level4" target="_blank" rel="noreferrer"><code class="path-code">reports/phase6_level4/</code></a>
-                <a href="https://github.com/Hozefa-L/HARDENv2/tree/main/reports/phase7_balanced" target="_blank" rel="noreferrer"><code class="path-code">reports/phase7_balanced/</code></a>
-                <a href="https://github.com/Hozefa-L/HARDENv2/tree/main/reports/mythril_v0_24_8" target="_blank" rel="noreferrer"><code class="path-code">reports/mythril_v0_24_8/</code></a>
-              </div>
-            </td>
-            <td data-label="Purpose">Aggregated results, publication tables, figures, and comparison outputs.</td>
-          </tr>
-          <tr>
-            <td data-label="Area">Evaluation metrics</td>
-            <td data-label="Representative Contents">
-              <div class="resource-list">
-                <a href="https://github.com/Hozefa-L/HARDENv2/tree/main/checkpoints/phase7_balanced/metrics" target="_blank" rel="noreferrer"><code class="path-code">checkpoints/phase7_balanced/metrics/</code></a>
-              </div>
-            </td>
-            <td data-label="Purpose">Per-run metric files and retained prediction outputs for the balanced evaluation slice.</td>
-          </tr>
-          <tr>
-            <td data-label="Area">Repository metadata</td>
-            <td data-label="Representative Contents">
-              <div class="resource-list">
-                <a href="https://github.com/Hozefa-L/HARDENv2/blob/main/CITATION.cff" target="_blank" rel="noreferrer"><code class="path-code">CITATION.cff</code></a>
-                <a href="https://github.com/Hozefa-L/HARDENv2/blob/main/LICENSE" target="_blank" rel="noreferrer"><code class="path-code">LICENSE</code></a>
-                <a href="https://github.com/Hozefa-L/HARDENv2/blob/main/requirements.txt" target="_blank" rel="noreferrer"><code class="path-code">requirements.txt</code></a>
-              </div>
-            </td>
-            <td data-label="Purpose">Citation metadata, licensing, and environment specification.</td>
-          </tr>
-        </tbody>
-      </table>
+      <pre><code>git clone https://github.com/Hozefa-L/HARDENv2
+cd HARDENv2
+pip install -r requirements.txt
+
+python scripts/verify_data.py</code></pre>
+
+      <p>
+        A first end-to-end run trains one configuration on one seed in a few
+        minutes, CPU only:
+      </p>
+
+      <pre><code>python -m src.training.run_experiments \
+    --config configs/phase7_balanced.yaml \
+    --model-variant classical_xgboost --seed 42</code></pre>
+
+      <p>
+        The full study trains 14 configurations over five seeds (70 runs) and
+        aggregates them into the paper's tables. The classical baselines run on
+        CPU in minutes; the neural configurations need a single CUDA GPU with
+        12 GB of memory and finish in roughly a day:
+      </p>
+
+      <pre><code>python -m src.training.run_experiments --config configs/phase7_balanced.yaml
+python scripts/level4_analysis.py --manifest reports/phase7_balanced/phase7_run_manifest.json</code></pre>
     </section>
 
     <section class="section" id="benchmark">
-      <h2>Benchmark Snapshot</h2>
-      <p>
-        HARDENv2 centers on the CGT-DAppSCAN runtime-bytecode benchmark and the
-        retained <span class="inline">clean_default</span> evaluation scope.
-      </p>
-
-      <p>
-        The published benchmark artifacts include 2,186 curated graph tensors
-        under <span class="inline">data/curated/graphs/phase2_task5_20260309T161122Z</span>
-        together with train, validation, and test split files under
-        <span class="inline">data/splits/main_benchmark</span>.
+      <h2>The Benchmark</h2>
+      <p class="section-intro">
+        CGT-DAppSCAN is a derived benchmark. It merges the Consolidated Ground
+        Truth and DAppSCAN corpora into one masked, multi-label, graph-ready
+        dataset under a single fixed protocol, operating on runtime bytecode
+        only. Labels carry per-(contract, label) assessment masks, so a model
+        is only scored where ground truth actually exists.
       </p>
 
       <div class="stats">
         <div class="stat">
           <div class="stat-value">2,186</div>
-          <div>Contracts in the retained benchmark scope.</div>
+          <div>Contracts, each a unique runtime-bytecode fingerprint.</div>
         </div>
         <div class="stat">
           <div class="stat-value">10</div>
-          <div>Evaluated SWC categories: 101, 103, 104, 107, 113, 114, 115, 120, 128, 135.</div>
+          <div>Evaluated SWC classes: 101, 103, 104, 107, 113, 114, 115, 120, 128, 135.</div>
         </div>
         <div class="stat">
           <div class="stat-value">1,749 / 219 / 218</div>
-          <div>Train, validation, and test split counts.</div>
+          <div>Train, validation, and test contracts (80/10/10, multi-label stratified).</div>
         </div>
         <div class="stat">
           <div class="stat-value">1,814 / 363 / 9</div>
-          <div>CGT-only, DAppSCAN-only, and shared source counts.</div>
+          <div>CGT-only, DAppSCAN-only, and shared contracts.</div>
         </div>
       </div>
+
+      <p style="margin-top:18px">
+        Every contract ships as a serialized CFG/DFG graph tensor under
+        <span class="inline">data/curated/graphs/</span>, with opcode, TF-IDF,
+        and expert-pattern feature tables under
+        <span class="inline">data/features/</span> and fixed splits under
+        <span class="inline">data/splits/main_benchmark/</span>. A
+        machine-readable summary sits in
+        <span class="inline">benchmark/clean_default_summary.json</span>, and
+        <span class="inline">python scripts/verify_data.py</span> re-checks the
+        counts, split disjointness, and file alignment on demand.
+      </p>
     </section>
 
-    <section class="section" id="dataset">
-      <h2>Dataset Artifacts</h2>
+    <section class="section" id="results">
+      <h2>Headline Results</h2>
       <p class="section-intro">
-        The public branch exposes the retained clean_default benchmark as a
-        usable artifact bundle rather than only a benchmark summary. The
-        released slice includes graph tensors, benchmark splits, and retained
-        feature tables that align with the published evaluation path.
+        Macro-F1 on the held-out test split, averaged over five seeds, with
+        per-class thresholds tuned on validation only. Running the full sweep
+        regenerates the result files locally under
+        <span class="inline">reports/phase7_balanced/</span>.
       </p>
 
-      <div class="cards">
-        <div class="card">
-          <h3>Curated Graph Bundle</h3>
-          <p>2,186 serialized graph tensors generated for the retained benchmark slice.</p>
-          <p><a href="https://github.com/Hozefa-L/HARDENv2/tree/main/data/curated/graphs/phase2_task5_20260309T161122Z" target="_blank" rel="noreferrer"><code class="path-code">data/curated/graphs/phase2_task5_20260309T161122Z/</code></a></p>
-        </div>
-        <div class="card">
-          <h3>Benchmark Splits</h3>
-          <p>Public train, validation, and test splits with the retained clean_default manifest.</p>
-          <p><a href="https://github.com/Hozefa-L/HARDENv2/tree/main/data/splits/main_benchmark" target="_blank" rel="noreferrer"><code class="path-code">data/splits/main_benchmark/</code></a></p>
-        </div>
-        <div class="card">
-          <h3>Retained Features</h3>
-          <p>Feature tables kept alongside the dataset slice used by downstream experiments.</p>
-          <p><a href="https://github.com/Hozefa-L/HARDENv2/tree/main/data/features" target="_blank" rel="noreferrer"><code class="path-code">data/features/</code></a></p>
-        </div>
-      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Detector</th>
+            <th>Type</th>
+            <th>Macro-F1</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="Detector">XGBoost (tuned, enriched features)</td>
+            <td data-label="Type">Tree ensemble</td>
+            <td data-label="Macro-F1" class="num">0.805</td>
+          </tr>
+          <tr>
+            <td data-label="Detector">Random Forest</td>
+            <td data-label="Type">Tree ensemble</td>
+            <td data-label="Macro-F1" class="num">0.802</td>
+          </tr>
+          <tr>
+            <td data-label="Detector">HARDENv2-Graph</td>
+            <td data-label="Type">Heterogeneous graph transformer</td>
+            <td data-label="Macro-F1" class="num">0.641</td>
+          </tr>
+          <tr>
+            <td data-label="Detector">Mythril v0.24.8</td>
+            <td data-label="Type">Symbolic execution</td>
+            <td data-label="Macro-F1" class="num">0.396</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin-top:18px">
+        The paper reads these numbers as a statement about evaluation
+        protocol as much as about models. With masked labels, fixed splits,
+        and validation-only threshold tuning, feature-based tree ensembles set
+        a strong bar that graph models must be measured against, and the study
+        quantifies that gap with paired permutation tests.
+      </p>
     </section>
 
     <section class="section" id="layout">
-      <h2>Repository Layout</h2>
-      <div class="cards">
-        <div class="card">
-          <h3><a href="https://github.com/Hozefa-L/HARDENv2/tree/main/benchmark" target="_blank" rel="noreferrer"><code class="path-code">benchmark/</code></a></h3>
-          <p>Benchmark summaries and dataset-scope metadata.</p>
-        </div>
-        <div class="card">
-          <h3><a href="https://github.com/Hozefa-L/HARDENv2/tree/main/data/curated/graphs" target="_blank" rel="noreferrer"><code class="path-code">data/curated/graphs/</code></a></h3>
-          <p>The published 2,186-contract graph dataset for the retained benchmark.</p>
-        </div>
-        <div class="card">
-          <h3><a href="https://github.com/Hozefa-L/HARDENv2/tree/main/data/splits" target="_blank" rel="noreferrer"><code class="path-code">data/splits/</code></a></h3>
-          <p>Train, validation, test, and manifest files for the clean_default split.</p>
-        </div>
-        <div class="card">
-          <h3><a href="https://github.com/Hozefa-L/HARDENv2/tree/main/configs" target="_blank" rel="noreferrer"><code class="path-code">configs/</code></a></h3>
-          <p>Retained experiment configuration files, including the Phase 7 path.</p>
-        </div>
-        <div class="card">
-          <h3><a href="https://github.com/Hozefa-L/HARDENv2/tree/main/reports" target="_blank" rel="noreferrer"><code class="path-code">reports/</code></a></h3>
-          <p>Phase-level summaries, publication tables, figures, and comparison outputs.</p>
-        </div>
-        <div class="card">
-          <h3><a href="https://github.com/Hozefa-L/HARDENv2/tree/main/src" target="_blank" rel="noreferrer"><code class="path-code">src/</code></a>, <a href="https://github.com/Hozefa-L/HARDENv2/tree/main/scripts" target="_blank" rel="noreferrer"><code class="path-code">scripts/</code></a>, and <a href="https://github.com/Hozefa-L/HARDENv2/tree/main/checkpoints" target="_blank" rel="noreferrer"><code class="path-code">checkpoints/</code></a></h3>
-          <p>Code, analysis entrypoints, and the retained Phase 7 metrics slice.</p>
-        </div>
-      </div>
+      <h2>Repository Guide</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Path</th>
+            <th>Contents</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="Path"><a href="https://github.com/Hozefa-L/HARDENv2/tree/main/data" target="_blank" rel="noreferrer"><code class="path-code">data/</code></a></td>
+            <td data-label="Contents">The benchmark itself: graph tensors, splits, feature tables, and ten synthetic e-government contracts used in the paper's case study.</td>
+          </tr>
+          <tr>
+            <td data-label="Path"><a href="https://github.com/Hozefa-L/HARDENv2/tree/main/benchmark" target="_blank" rel="noreferrer"><code class="path-code">benchmark/</code></a></td>
+            <td data-label="Contents">Benchmark summary, label conventions, and the per-contract identifier manifest for rebuilding bytecode from the upstream sources.</td>
+          </tr>
+          <tr>
+            <td data-label="Path"><a href="https://github.com/Hozefa-L/HARDENv2/tree/main/src" target="_blank" rel="noreferrer"><code class="path-code">src/</code></a></td>
+            <td data-label="Contents">Curation, graph lifting, feature extraction, models, training, and evaluation code.</td>
+          </tr>
+          <tr>
+            <td data-label="Path"><a href="https://github.com/Hozefa-L/HARDENv2/tree/main/configs" target="_blank" rel="noreferrer"><code class="path-code">configs/</code></a></td>
+            <td data-label="Contents">Experiment configurations; <code class="path-code">phase7_balanced.yaml</code> defines the study reported in the paper.</td>
+          </tr>
+          <tr>
+            <td data-label="Path"><a href="https://github.com/Hozefa-L/HARDENv2/tree/main/scripts" target="_blank" rel="noreferrer"><code class="path-code">scripts/</code></a></td>
+            <td data-label="Contents">Data integrity checks, bytecode reconstruction, manifest generation, and result aggregation.</td>
+          </tr>
+          <tr>
+            <td data-label="Path"><a href="https://github.com/Hozefa-L/HARDENv2/blob/main/docs/ARTIFACT.md" target="_blank" rel="noreferrer"><code class="path-code">docs/ARTIFACT.md</code></a></td>
+            <td data-label="Contents">A guide to reproducing the study's numbers from a fresh clone.</td>
+          </tr>
+        </tbody>
+      </table>
     </section>
 
-    <section class="section" id="workflow">
-      <h2>Pipeline Map</h2>
-      <p>
-        The retained pipeline spans benchmark curation, graph recovery, feature
-        extraction, and multi-label training.
+    <section class="section" id="provenance">
+      <h2>Provenance and Licensing</h2>
+      <p class="section-intro">
+        The release has two layers. Everything the project authored (graph
+        tensors, features, labels, masks, splits) is committed in the
+        repository under CC BY 4.0, with code under MIT. Raw contract bytecode
+        is deliberately absent from every committed file, because DAppSCAN
+        ships no license. In its place the repository publishes a
+        per-contract identifier manifest and a reconstruction script that
+        rebuilds all 2,186 contracts bit-for-bit from the upstream CGT and
+        DAppSCAN checkouts, verifying each against its canonical fingerprint.
       </p>
 
-      <div class="steps">
-        <div class="step">
-          <div class="step-number">1</div>
-          <h3>Curate</h3>
-          <p>Merge and harmonize CGT and DAppSCAN labels and contract records.</p>
-        </div>
-        <div class="step">
-          <div class="step-number">2</div>
-          <h3>Build Graphs</h3>
-          <p>Recover CFG and DFG structure from runtime bytecode.</p>
-        </div>
-        <div class="step">
-          <div class="step-number">3</div>
-          <h3>Extract Features</h3>
-          <p>Produce TF-IDF, pattern, graph-level, and related opcode features.</p>
-        </div>
-        <div class="step">
-          <div class="step-number">4</div>
-          <h3>Configure</h3>
-          <p>Retain the Phase 4, Phase 5, and Phase 7 configuration chain.</p>
-        </div>
-        <div class="step">
-          <div class="step-number">5</div>
-          <h3>Train And Evaluate</h3>
-          <p>Run OpcodeGT and baselines, then aggregate publication-facing metrics.</p>
-        </div>
+      <pre><code>git clone https://github.com/gsalzer/CGT        data/raw/cgt-main
+git clone https://github.com/InPlusLab/DAppSCAN  data/raw/dappscan
+
+python scripts/reconstruct_bytecode.py \
+    --manifest benchmark/contract_identifiers.csv \
+    --cgt-root data/raw/cgt-main \
+    --dappscan-root data/raw/dappscan \
+    --out data/reconstructed
+# a full run reports: 2186/2186 verified</code></pre>
+
+      <div class="hero-actions">
+        <a class="button button-secondary" href="https://github.com/Hozefa-L/HARDENv2/blob/main/DATA_PROVENANCE.md" target="_blank" rel="noreferrer">DATA_PROVENANCE.md</a>
+        <a class="button button-secondary" href="https://github.com/Hozefa-L/HARDENv2/blob/main/LICENSE" target="_blank" rel="noreferrer">Code License (MIT)</a>
+        <a class="button button-secondary" href="https://github.com/Hozefa-L/HARDENv2/blob/main/LICENSE-DATA" target="_blank" rel="noreferrer">Data License (CC BY 4.0)</a>
       </div>
-
-      <pre><code>pip install -r requirements.txt
-python -m src.training.run_experiments --config configs/phase7_balanced.yaml
-python scripts/level4_analysis.py --manifest reports/phase7_balanced/phase7_run_manifest.json</code></pre>
-
-      <p>These commands cover the retained training and aggregation path.</p>
     </section>
 
     <section class="section" id="citation">
       <h2>Citation</h2>
       <p>
-        Use the repository metadata below together with the citation file
-        provided in the repository.
+        Machine-readable metadata is in
+        <a href="https://github.com/Hozefa-L/HARDENv2/blob/main/CITATION.cff" target="_blank" rel="noreferrer"><code class="path-code">CITATION.cff</code></a>.
+        Once a tagged release is archived on Zenodo, prefer citing the DOI of
+        the archived snapshot.
       </p>
-
-      <div class="hero-actions">
-        <a class="button button-secondary" href="https://github.com/Hozefa-L/HARDENv2/blob/main/CITATION.cff" target="_blank" rel="noreferrer">View CITATION.cff</a>
-        <a class="button button-secondary" href="https://github.com/Hozefa-L/HARDENv2/blob/main/LICENSE" target="_blank" rel="noreferrer">View License</a>
-      </div>
 
       <pre><code>@software{lakadawala2026hardenv2,
   author = {Lakadawala, Hozefa and Dzigbede, Komla and Chen, Yu},
-  title = {HARDENv2: Heterogeneous Graph Transformers with Enriched Opcode Features for Bytecode-Level Multi-Label Smart Contract Vulnerability Detection},
-  year = {2026},
-  url = {https://github.com/Hozefa-L/HARDENv2},
-  note = {Research code repository}
+  title  = {HARDENv2 / CGT-DAppSCAN: A Reproducible Bytecode Benchmark and
+            Empirical Study of Smart-Contract Vulnerability Detectors},
+  year   = {2026},
+  url    = {https://github.com/Hozefa-L/HARDENv2}
 }</code></pre>
-
-  <p>Machine-readable citation metadata is provided in <a href="https://github.com/Hozefa-L/HARDENv2/blob/main/CITATION.cff" target="_blank" rel="noreferrer"><code class="path-code">CITATION.cff</code></a>.</p>
     </section>
 
     <div class="footer">
-      HARDENv2 research repository and benchmark documentation.
+      HARDENv2 / CGT-DAppSCAN, Binghamton University.
     </div>
   </main>
 </body>

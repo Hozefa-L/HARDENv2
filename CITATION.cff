@@ -1,6 +1,6 @@
 cff-version: 1.2.0
-message: "If you use HARDENv2, please cite this repository and prefer a tagged archival release when one becomes available."
-title: "HARDENv2: Heterogeneous Graph Transformers with Enriched Opcode Features for Bytecode-Level Multi-Label Smart Contract Vulnerability Detection"
+message: "If you use this benchmark or code, please cite it as below. Prefer a tagged release archived on Zenodo once one is available."
+title: "HARDENv2 / CGT-DAppSCAN: A Reproducible Bytecode Benchmark and Empirical Study of Smart-Contract Vulnerability Detectors"
 type: software
 authors:
   - family-names: Lakadawala
@@ -12,9 +12,9 @@ authors:
   - family-names: Chen
     given-names: Yu
     affiliation: Binghamton University
-abstract: "HARDENv2 is a research codebase for bytecode-level multi-label smart contract vulnerability detection using heterogeneous graph structure and enriched opcode features over the CGT-DAppSCAN benchmark."
+abstract: "CGT-DAppSCAN is a bytecode-level, multi-label smart-contract vulnerability benchmark of 2,186 Ethereum contracts across ten SWC weakness classes, with fixed splits, graph tensors, feature tables, and assessment masks. HARDENv2 is the heterogeneous-graph model family and evaluation pipeline used to compare graph transformers against tree ensembles, neural baselines, and Mythril on this benchmark."
 repository-code: "https://github.com/Hozefa-L/HARDENv2"
-url: "https://github.com/Hozefa-L/HARDENv2"
+url: "https://hozefa-l.github.io/HARDENv2/"
 license: MIT
 keywords:
   - smart contracts
@@ -23,3 +23,4 @@ keywords:
   - graph neural networks
   - heterogeneous graphs
   - EVM
+  - benchmark

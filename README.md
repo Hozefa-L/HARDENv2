@@ -1,25 +1,24 @@
 # HARDENv2 / CGT-DAppSCAN
 
-This is the public research artifact for the paper
-**“A Reproducible Bytecode Benchmark and Empirical Study of Smart-Contract
-Vulnerability Detectors.”**
+[![Code license: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE)
+[![Data license: CC BY 4.0](https://img.shields.io/badge/data-CC%20BY%204.0-green.svg)](LICENSE-DATA)
+[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](requirements.txt)
 
-It contains two things:
+This repository accompanies the paper **"A Reproducible Bytecode Benchmark and
+Empirical Study of Smart-Contract Vulnerability Detectors."** It contains two
+things.
 
-1. **CGT-DAppSCAN** — a reproducible, bytecode-level, multi-label benchmark of
-   **2,186 Ethereum contracts** across ten SWC weakness classes, shipped here as
-   ready-to-use graph tensors, feature tables, labels/masks, and fixed
+1. **CGT-DAppSCAN**, a bytecode-level, multi-label benchmark of **2,186
+   Ethereum contracts** across ten SWC weakness classes, shipped as ready-to-use
+   graph tensors, feature tables, labels with assessment masks, and fixed
    train/validation/test splits.
-2. **HARDENv2** — the heterogeneous-graph model family (HMPGT + enriched opcode
-   features) and the full evaluation pipeline used to compare it against tree
-   ensembles, neural sequence/MLP baselines, flat GNNs, and Mythril.
+2. **HARDENv2**, the heterogeneous-graph model family (HMPGT with enriched
+   opcode features) and the evaluation pipeline used to compare it against tree
+   ensembles, neural sequence and MLP baselines, flat GNNs, and Mythril.
 
-- **Repository:** https://github.com/Hozefa-L/HARDENv2
-- **Project page:** https://hozefa-l.github.io/HARDENv2/
-
-The benchmark data lives **directly in this repository** — there is nothing
-external to download. You can clone it and reproduce the paper's headline
-numbers without rebuilding anything from upstream sources.
+The benchmark data lives directly in this repository, so a clone is all you
+need to reproduce the paper's headline numbers. Project page:
+https://hozefa-l.github.io/HARDENv2/
 
 ---
 
@@ -30,18 +29,46 @@ git clone https://github.com/Hozefa-L/HARDENv2
 cd HARDENv2
 pip install -r requirements.txt
 
-# Reproduce the headline evaluation (uses the committed benchmark data).
-python -m src.training.run_experiments --config configs/phase7_balanced.yaml
+# Confirm the benchmark data is intact (about 30 seconds, CPU only).
+python scripts/verify_data.py
+```
 
-# Summarize the results into the paper's tables.
+The checker prints one PASS line per property (2,186 graphs, split sizes,
+split disjointness, source breakdown, feature-table alignment) and exits
+nonzero if anything is off. The same checks run under pytest via
+`pytest tests/`.
+
+For a first end-to-end run, train a single configuration on one seed. This
+takes a few minutes and works on CPU:
+
+```bash
+python -m src.training.run_experiments \
+    --config configs/phase7_balanced.yaml \
+    --model-variant classical_xgboost --seed 42
+```
+
+The full evaluation behind the paper trains 14 configurations over five seeds
+(70 runs) and then aggregates them into the paper's tables:
+
+```bash
+python -m src.training.run_experiments --config configs/phase7_balanced.yaml
 python scripts/level4_analysis.py \
     --manifest reports/phase7_balanced/phase7_run_manifest.json
 ```
 
-That run reads the 2,186 graph tensors and splits already in `data/`, trains the
-learned configurations over five seeds, and writes results to
-`reports/phase7_balanced/`. No CGT/DAppSCAN checkout, RPC node, or EtherSolve
-install is needed for this path.
+Results land in a local `reports/phase7_balanced/` directory created by the
+run. The runner checkpoints its progress, so an interrupted sweep resumes
+where it stopped.
+
+### Environment and runtime
+
+The experiments were run on Python 3.12 with the package versions pinned in
+`requirements.txt` (PyTorch 2.12.0 built against CUDA 13.0, torch-geometric
+2.7.0). The classical baselines (Random Forest, XGBoost, LightGBM, logistic
+regression) train on CPU in minutes. The neural configurations need a CUDA
+GPU; peak training memory is about 8 GB, so a single 12 GB card is enough.
+Each neural run is capped at one hour, which puts the full 70-run sweep at
+roughly a day on one GPU.
 
 ---
 
@@ -49,21 +76,22 @@ install is needed for this path.
 
 | Path | Contents |
 | --- | --- |
-| `data/curated/graphs/` | **The benchmark dataset** — 2,186 serialized CFG/DFG graph tensors |
+| `data/curated/graphs/` | The benchmark dataset itself, 2,186 serialized CFG/DFG graph tensors |
 | `data/splits/main_benchmark/` | Fixed train / validation / test split files and manifest |
 | `data/features/main_benchmark/` | Opcode, TF-IDF, and expert-pattern feature tables |
-| `data/synthetic/` | Ten minimal synthetic e-government contracts (EG-1 … EG-10) |
-| `benchmark/` | Benchmark summary + the Layer-2 contract-identifier manifest |
-| `configs/` | Experiment configs (`phase2.yaml` … `phase7_balanced.yaml`) |
+| `data/synthetic/` | Ten minimal synthetic e-government contracts (EG-1 to EG-10) |
+| `benchmark/` | Benchmark summary and the per-contract identifier manifest |
+| `configs/` | Experiment configs (`phase2.yaml` through `phase7_balanced.yaml`) |
 | `src/` | Curation, graph lifting, features, models, training, evaluation |
-| `scripts/` | Reconstruction, manifest, and analysis entrypoints |
-| `reports/` | Per-phase evaluation summaries, tables, and figures |
+| `scripts/` | Data checks, reconstruction, manifest, and analysis entrypoints |
+| `tests/` | Pytest wrapper around the data integrity checks |
 | `checkpoints/phase7_balanced/metrics/` | Per-seed metric files for the headline run |
-| `docs/ARTIFACT.md` | Artifact-evaluation guide: claim → how-to-check |
+| `docs/ARTIFACT.md` | Guide to reproducing the study's numbers from a fresh clone |
 
-The benchmark data (graphs, splits, features) is **committed here directly**, so
-the repository is self-contained. Upstream contract bytecode is the **only**
-thing not included — see [Provenance and rebuilding from source](#provenance-and-rebuilding-from-source).
+The split files carry contract fingerprints, source metadata, labels, and
+assessment masks. Raw contract bytecode is deliberately absent from every
+committed file; the section on provenance below explains how to rebuild it
+from the upstream sources when you need it.
 
 ---
 
@@ -74,49 +102,45 @@ thing not included — see [Provenance and rebuilding from source](#provenance-a
 | Contracts | 2,186 |
 | Evaluated SWCs | 101, 103, 104, 107, 113, 114, 115, 120, 128, 135 |
 | Splits | train 1,749 / val 219 / test 218 (80 / 10 / 10, multi-label stratified) |
-| Source mix | 1,814 CGT-only · 363 DAppSCAN-only · 9 shared |
-| Input modality | runtime bytecode only (a deliberate scope choice — see the paper) |
+| Source mix | 1,814 CGT-only, 363 DAppSCAN-only, 9 shared |
+| Input modality | runtime bytecode only (a deliberate scope choice, see the paper) |
 
-Machine-readable summary: `benchmark/clean_default_summary.json`.
+A machine-readable summary sits in `benchmark/clean_default_summary.json`.
 
-CGT-DAppSCAN is a *derived* benchmark: it merges the Consolidated Ground Truth
+CGT-DAppSCAN is a derived benchmark. It merges the Consolidated Ground Truth
 and DAppSCAN corpora into one masked, multi-label, graph-ready dataset under a
-single fixed protocol. It is a re-purposing, not a re-release — see
-`DATA_PROVENANCE.md`.
+single fixed protocol, and `DATA_PROVENANCE.md` records exactly what is
+redistributed and under which terms.
 
 ---
 
-## Reproducing the paper's results
+## Reproducing the study's numbers
 
-After `run_experiments`, the outputs map to the paper as follows:
+The full sweep writes its outputs to the local `reports/phase7_balanced/`
+directory, with the headline metrics in `results_summary.json`, the per-SWC F1
+matrix in `per_swc_metrics.parquet`, and the held-out paired tests in
+`statistical_tests.json`. The numbers to expect match the paper. XGBoost
+(0.805) and Random Forest (0.802) lead on Macro-F1, HARDENv2-Graph reaches
+0.641, the held-out paired permutation test for the graph-family comparison
+gives p = 0.0002, and Mythril v0.24.8 scores 0.396 on the same split.
 
-| Paper claim | Where to look |
-| --- | --- |
-| Headline Macro-F1 (XGBoost 0.805, RF 0.802, HARDENv2-Graph 0.641) | `reports/phase7_balanced/results_summary.json` |
-| Per-SWC F1 matrix | `reports/phase7_balanced/per_swc_metrics.parquet` |
-| Held-out paired tests (permutation p = 0.0002) | `reports/phase7_balanced/statistical_tests.json` |
-| Publication tables | `reports/phase7_balanced/publication_tables.md` |
-| Mythril v0.24.8 external baseline (0.396) | `reports/mythril_v0_24_8/` |
-
-Every learned result is averaged over seeds `{42, 123, 456, 789, 2024}`; per-class
-thresholds are tuned on validation only and frozen for test. The tuning budget,
-search space, and threshold protocol are documented in the paper and implemented
-in `src/training/` (`run_experiments.py`, `tune_opcodegt.py`,
-`threshold_tuning.py`).
-
-A fuller claim-by-claim checklist for artifact evaluation is in
+Every learned result is averaged over seeds `{42, 123, 456, 789, 2024}`.
+Per-class thresholds are tuned on validation only and frozen for test; the
+tuning budget, search space, and threshold protocol are implemented in
+`src/training/` (`run_experiments.py`, `tune_opcodegt.py`,
+`threshold_tuning.py`). A fuller walkthrough is in
 [`docs/ARTIFACT.md`](docs/ARTIFACT.md).
 
 ---
 
 ## Provenance and rebuilding from source
 
-The benchmark **data** committed here is fully ours to release (see licensing
-below). The **upstream contract bytecode** it was derived from is not re-hosted:
-DAppSCAN ships no license, so instead of redistributing those files we publish
-contract *identifiers* plus a *reconstruction script*. This lets anyone rebuild
-the corpus bit-for-bit from the original sources and verify it against the
-committed artifacts.
+The data committed here consists of artifacts this project authored (see the
+licensing table below). Upstream contract bytecode is referenced by identifier
+only. DAppSCAN ships no license, so instead of redistributing those files the
+repository publishes a per-contract identifier manifest plus a reconstruction
+script, which lets anyone rebuild the corpus bit-for-bit from the original
+sources and verify it against the committed artifacts.
 
 ```bash
 # Clone the upstream sources (not redistributed here).
@@ -132,7 +156,8 @@ python scripts/reconstruct_bytecode.py \
     --out data/reconstructed
 ```
 
-To re-lift the CFG/DFG graphs from reconstructed bytecode, install EtherSolve:
+Re-lifting the CFG/DFG graphs from reconstructed bytecode additionally needs
+EtherSolve:
 
 ```bash
 wget https://github.com/SeUniVr/EtherSolve/releases/download/v1.0/EtherSolve.jar
@@ -150,7 +175,7 @@ Full provenance, the two-layer release model, and per-source licensing are in
 | --- | --- | --- |
 | Source code (`src/`, `scripts/`) | MIT | `LICENSE` |
 | Derived data artifacts (graphs, features, labels/masks, splits) | CC BY 4.0 | `LICENSE-DATA` |
-| Upstream contract bytecode | original terms — **not relicensed, not re-hosted** | `DATA_PROVENANCE.md` |
+| Upstream contract bytecode | original terms, neither relicensed nor re-hosted | `DATA_PROVENANCE.md` |
 
 ---
 

@@ -30,3 +30,6 @@ dist/
 # OS / editor cruft
 .DS_Store
 *.swp
+
+# Evaluation outputs are generated locally by the runner and stay local
+reports/

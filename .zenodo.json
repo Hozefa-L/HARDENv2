@@ -1,0 +1,40 @@
+{
+  "title": "HARDENv2 / CGT-DAppSCAN: A Reproducible Bytecode Benchmark and Empirical Study of Smart-Contract Vulnerability Detectors",
+  "upload_type": "software",
+  "description": "<p>Companion repository for <em>A Reproducible Bytecode Benchmark and Empirical Study of Smart-Contract Vulnerability Detectors</em>. It contains the CGT-DAppSCAN benchmark (2,186 Ethereum contracts, ten SWC weakness classes, fixed train/validation/test splits, heterogeneous CFG/DFG graph tensors, opcode and TF-IDF/expert-pattern feature tables, labels with per-(contract,label) assessment masks) together with the HARDENv2 model family and the full evaluation pipeline used in the paper.</p><p>The repository redistributes no upstream contract bytecode. CGT contributes on-chain bytecode (no license imposed by the CGT repository) and DAppSCAN ships no license, so contracts are referenced by identifier and a reconstruction script rebuilds the corpus bit-for-bit from the original sources. Source code is under the MIT License; derived data artifacts are under CC BY 4.0 (see LICENSE-DATA and DATA_PROVENANCE.md in the repository).</p>",
+  "access_right": "open",
+  "license": "mit",
+  "language": "eng",
+  "creators": [
+    { "name": "Lakadawala, Hozefa", "affiliation": "Binghamton University" },
+    { "name": "Dzigbede, Komla", "affiliation": "Binghamton University" },
+    { "name": "Chen, Yu", "affiliation": "Binghamton University" }
+  ],
+  "keywords": [
+    "smart contracts",
+    "vulnerability detection",
+    "EVM bytecode",
+    "graph neural networks",
+    "heterogeneous graphs",
+    "multi-label classification",
+    "reproducible benchmark",
+    "software reliability"
+  ],
+  "related_identifiers": [
+    {
+      "relation": "isSupplementTo",
+      "identifier": "https://github.com/Hozefa-L/HARDENv2",
+      "scheme": "url"
+    },
+    {
+      "relation": "isDerivedFrom",
+      "identifier": "https://github.com/gsalzer/CGT",
+      "scheme": "url"
+    },
+    {
+      "relation": "isDerivedFrom",
+      "identifier": "https://github.com/InPlusLab/DAppSCAN",
+      "scheme": "url"
+    }
+  ]
+}

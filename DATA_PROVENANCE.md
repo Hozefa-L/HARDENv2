@@ -7,7 +7,7 @@ section of the paper.
 
 ## Two-layer release
 
-**Layer 1 — derived artifacts we author (license: CC BY 4.0, see `LICENSE-DATA`).**
+**Layer 1: derived artifacts we author (license: CC BY 4.0, see `LICENSE-DATA`).**
 These are products of our pipeline and are ours to release:
 
 - heterogeneous CFG/DFG graph tensors,
@@ -21,22 +21,28 @@ These are **committed directly in this repository** (under `data/curated/`,
 needs no external download. They can also be reproduced bit-for-bit from the
 upstream sources via the reconstruction steps in the top-level `README.md`.
 
-**Layer 2 — raw contract bytecode (NOT re-hosted).**
+None of the committed files carries raw contract bytecode. The split files
+hold fingerprints, source metadata, labels, and assessment masks; the opcode
+corpus holds mnemonic sequences without operand values; the graph tensors hold
+the lifted CFG/DFG structure. `python scripts/verify_data.py` checks this
+along with the benchmark's structural properties.
+
+**Layer 2: raw contract bytecode (NOT re-hosted).**
 Rather than redistribute upstream contract files, we publish *contract
 identifiers* plus a *reconstruction script* so the corpus can be rebuilt
 locally and bit-for-bit reproducibly. The manifest covers **all 2,186
 benchmark contracts** across both sources (1,814 CGT-only, 363 DAppSCAN-only,
 9 shared), not just the CGT layer:
 
-- `benchmark/contract_identifiers.csv` — one row per benchmark contract, keyed
+- `benchmark/contract_identifiers.csv` provides one row per benchmark contract, keyed
   by the canonical runtime fingerprint `fp_runtime_unified`, with `source`
   (`cgt`/`dappscan`/`both`), the CGT mirror `runtime_hash`, on-chain
   `chain`/`address`, the `dappscan_contract_id` (`<dapp>/<contract>`), and the
   assessed/positive SWC tags.
-- `scripts/build_identifier_manifest.py` — regenerates that manifest as a
+- `scripts/build_identifier_manifest.py` regenerates that manifest as a
   faithful export of the curated benchmark, from the fixed split artifacts under
   `data/splits/main_benchmark/` (joining CGT addresses from `consolidated.csv`).
-- `scripts/reconstruct_bytecode.py` — resolves runtime bytecode for every
+- `scripts/reconstruct_bytecode.py` resolves runtime bytecode for every
   identifier into `data/reconstructed/`: CGT contracts from a local CGT mirror
   by hash (or an Ethereum JSON-RPC endpoint by address), and DAppSCAN contracts
   from the user's own DAppSCAN clone (`--dappscan-root`). Each reconstructed
