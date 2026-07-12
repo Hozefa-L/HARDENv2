@@ -1,5 +1,6 @@
 # HARDENv2 / CGT-DAppSCAN
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21316588.svg)](https://doi.org/10.5281/zenodo.21316588)
 [![Code license: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE)
 [![Data license: CC BY 4.0](https://img.shields.io/badge/data-CC%20BY%204.0-green.svg)](LICENSE-DATA)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](requirements.txt)
@@ -183,12 +184,18 @@ Full provenance, the two-layer release model, and per-source licensing are in
 
 ```bibtex
 @software{lakadawala2026hardenv2,
-  author = {Lakadawala, Hozefa and Dzigbede, Komla and Chen, Yu},
-  title  = {HARDENv2 / CGT-DAppSCAN: A Reproducible Bytecode Benchmark and
-            Empirical Study of Smart-Contract Vulnerability Detectors},
-  year   = {2026},
-  url    = {https://github.com/Hozefa-L/HARDENv2}
+  author    = {Lakadawala, Hozefa and Dzigbede, Komla and Chen, Yu},
+  title     = {HARDENv2 / CGT-DAppSCAN: A Reproducible Bytecode Benchmark and
+               Empirical Study of Smart-Contract Vulnerability Detectors},
+  year      = {2026},
+  publisher = {Zenodo},
+  version   = {v1.0.0},
+  doi       = {10.5281/zenodo.21316588},
+  url       = {https://github.com/Hozefa-L/HARDENv2}
 }
 ```
 
-Machine-readable citation metadata is in `CITATION.cff`.
+Machine-readable citation metadata is in `CITATION.cff`. Tagged releases are
+archived on Zenodo under the concept DOI
+[10.5281/zenodo.21316588](https://doi.org/10.5281/zenodo.21316588), which
+always resolves to the latest version.
