@@ -87,7 +87,6 @@ roughly a day on one GPU.
 | `scripts/` | Data checks, reconstruction, manifest, and analysis entrypoints |
 | `tests/` | Pytest wrapper around the data integrity checks |
 | `checkpoints/phase7_balanced/metrics/` | Per-seed metric files for the headline run |
-| `docs/ARTIFACT.md` | Guide to reproducing the study's numbers from a fresh clone |
 
 The split files carry contract fingerprints, source metadata, labels, and
 assessment masks. Raw contract bytecode is deliberately absent from every
@@ -129,8 +128,7 @@ Every learned result is averaged over seeds `{42, 123, 456, 789, 2024}`.
 Per-class thresholds are tuned on validation only and frozen for test; the
 tuning budget, search space, and threshold protocol are implemented in
 `src/training/` (`run_experiments.py`, `tune_opcodegt.py`,
-`threshold_tuning.py`). A fuller walkthrough is in
-[`docs/ARTIFACT.md`](docs/ARTIFACT.md).
+`threshold_tuning.py`).
 
 ---
 
