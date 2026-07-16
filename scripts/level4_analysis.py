@@ -75,6 +75,23 @@ MODEL_DISPLAY_NAMES = {
     "mythril_v0_24_8": "Mythril v0.24.8",
 }
 
+LEARNED_MODEL_ORDER = [
+    "opcodegt_graph_only",
+    "opcodegt_opcode_only",
+    "opcodegt_fused",
+    "mlp_opcode",
+    "codebert_classifier",
+    "bilstm_baseline",
+    "mlp_fusion_concat",
+    "mlp_graph",
+    "gcn_baseline",
+    "gat_baseline",
+    "classical_xgboost",
+    "classical_rf",
+    "classical_lgbm",
+    "classical_graph_lr",
+]
+
 FIGURE_DISPLAY_NAMES = {
     **MODEL_DISPLAY_NAMES,
     "opcodegt_fused": "HARDENv2 (Fused)",
@@ -352,22 +369,31 @@ def generate_ablation_table(agg: Dict[str, Dict[str, Any]]) -> str:
 
 def generate_per_swc_table(
     per_swc_data: Dict[str, List[Dict]],
-    top_n: int = 5,
+    top_n: Optional[int] = None,
     agg: Optional[Dict[str, Dict[str, Any]]] = None,
+    model_ids: Optional[List[str]] = None,
+    title: str = "Table III: Per-SWC F1 Scores (All Learned Models)",
 ) -> str:
-    """Table III: Per-SWC F1 breakdown for top N models."""
-    lines = ["# Table III: Per-SWC F1 Scores (Top 5 Models)", ""]
+    """Generate a per-SWC F1 table for the requested model subset."""
+    lines = [f"# {title}", ""]
 
-    # Select top models by macro F1
-    if agg:
+    if model_ids:
+        top_ids = [model_id for model_id in model_ids if model_id in per_swc_data]
+    elif agg:
         sorted_models = sorted(
-            agg.items(),
+            (
+                item
+                for item in agg.items()
+                if item[0] != "mythril_v0_24_8"
+            ),
             key=lambda x: x[1].get("test_macro_f1", {}).get("mean", 0),
             reverse=True,
-        )[:top_n]
+        )
+        if top_n is not None:
+            sorted_models = sorted_models[:top_n]
         top_ids = [m[0] for m in sorted_models]
     else:
-        top_ids = list(per_swc_data.keys())[:top_n]
+        top_ids = list(per_swc_data.keys())[:top_n] if top_n is not None else list(per_swc_data.keys())
 
     # Collect all SWC ids
     swc_ids_set = set()
@@ -549,7 +575,7 @@ def main():
     tables = []
     tables.append(generate_main_results_table(agg))
     tables.append(generate_ablation_table(agg))
-    tables.append(generate_per_swc_table(per_swc_data, top_n=5, agg=agg))
+    tables.append(generate_per_swc_table(per_swc_data, agg=agg, model_ids=LEARNED_MODEL_ORDER))
     tables.append(generate_efficiency_table(manifest))
     tables.append(run_statistical_analysis(agg, output_dir))
 

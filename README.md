@@ -48,8 +48,15 @@ python -m src.training.run_experiments \
     --model-variant classical_xgboost --seed 42
 ```
 
-The full evaluation behind the paper trains 14 configurations over five seeds
-(70 runs) and then aggregates them into the paper's tables:
+The full evaluation behind the paper trains 13 configurations over five seeds
+(65 runs) and then aggregates them into the paper's tables. The sweep config
+also defines a `codebert_classifier` variant that is not part of the paper's
+tables: it requires frozen-encoder embeddings
+(`data/features/main_benchmark/codebert_features.parquet`, generated with
+`src/features/codebert_features.py`), and without that file the run is marked
+unavailable and the sweep continues. Earlier releases wired this variant to the
+opcode features by mistake, so its historical metrics did not measure CodeBERT
+and have been removed:
 
 ```bash
 python -m src.training.run_experiments --config configs/phase7_balanced.yaml
@@ -187,7 +194,7 @@ Full provenance, the two-layer release model, and per-source licensing are in
                Empirical Study of Smart-Contract Vulnerability Detectors},
   year      = {2026},
   publisher = {Zenodo},
-  version   = {v1.0.0},
+  version   = {v1.0.2},
   doi       = {10.5281/zenodo.21316588},
   url       = {https://github.com/Hozefa-L/HARDENv2}
 }

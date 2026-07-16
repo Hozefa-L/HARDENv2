@@ -202,6 +202,33 @@ def _write_json(payload: Mapping[str, Any], path: Path) -> None:
     with path.open("w", encoding="utf-8") as fp:
         json.dump(payload, fp, indent=2)
 
+def _build_test_prediction_payload(
+    *,
+    eval_result: Mapping[str, Any],
+    swc_ids: Sequence[int],
+    tuned_thresholds: Optional[Sequence[float]],
+) -> Dict[str, np.ndarray]:
+    return {
+        "contract_ids": np.asarray(eval_result["contract_ids"], dtype=str),
+        "probabilities": np.asarray(eval_result["probabilities"], dtype=np.float32),
+        "targets": np.asarray(eval_result["targets"], dtype=np.float32),
+        "target_mask": np.asarray(eval_result["target_mask"], dtype=np.uint8),
+        "swc_ids": np.asarray(list(swc_ids), dtype=np.int32),
+        "tuned_thresholds": np.asarray(tuned_thresholds or [], dtype=np.float32),
+    }
+
+def _write_test_prediction_artifact(
+    *,
+    metrics_path: Path,
+    payload: Optional[Mapping[str, np.ndarray]],
+) -> Optional[Path]:
+    if not payload:
+        return None
+    artifact_path = metrics_path.with_name(f"{metrics_path.stem}__test_predictions.npz")
+    artifact_path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(artifact_path, **payload)
+    return artifact_path
+
 
 def _set_seed(seed: int) -> None:
     random.seed(seed)
@@ -791,6 +818,7 @@ def _evaluate_neural_model(
     swc_ids: Sequence[int],
     threshold: float,
     per_swc_thresholds: Optional[Sequence[float]] = None,
+    feature_key: str = "opcode_features",
 ) -> Dict[str, Any]:
     subset = _to_subset(dataset, indices)
     loader = DataLoader(
@@ -812,7 +840,12 @@ def _evaluate_neural_model(
     model.eval()
     with torch.no_grad():
         for batch in loader:
-            opcode_features = batch["opcode_features"].to(device=device, dtype=torch.float32)
+            if feature_key not in batch:
+                raise KeyError(
+                    f"Batch is missing feature key `{feature_key}`; the dataset did not "
+                    f"provide the corresponding feature artifact."
+                )
+            opcode_features = batch[feature_key].to(device=device, dtype=torch.float32)
             graph_features = batch["graph_features"].to(device=device, dtype=torch.float32)
             targets = batch["targets"].to(dtype=torch.float32).cpu().numpy()
             target_mask = batch["target_mask"].to(dtype=torch.bool).cpu().numpy()
@@ -1130,6 +1163,7 @@ def _run_opcodegt_experiment(
 
     metrics_by_split: Dict[str, Any] = {}
     tuned_thresholds: Optional[List[float]] = None
+    test_prediction_payload: Optional[Dict[str, np.ndarray]] = None
 
     # First pass: evaluate val with default threshold to get raw arrays for tuning
     val_result = _evaluate_neural_model(
@@ -1167,6 +1201,12 @@ def _run_opcodegt_experiment(
             per_swc_thresholds=tuned_thresholds,
         )
         metrics_by_split[split] = eval_result["metrics"]
+        if split == "test":
+            test_prediction_payload = _build_test_prediction_payload(
+                eval_result=eval_result,
+                swc_ids=config.swc_ids,
+                tuned_thresholds=tuned_thresholds,
+            )
 
     checkpoint_path = (config.models_dir / f"{run['run_id']}.pt").resolve()
     checkpoint_payload = {
@@ -1198,6 +1238,7 @@ def _run_opcodegt_experiment(
         "parameter_count": int(model.parameter_count()),
         "split_metrics": metrics_by_split,
         "tuned_thresholds": tuned_thresholds,
+        "test_prediction_payload": test_prediction_payload,
     }
 
 
@@ -1293,6 +1334,7 @@ def _run_mlp_baseline_experiment(
 
     metrics_by_split: Dict[str, Any] = {}
     tuned_thresholds: Optional[List[float]] = None
+    test_prediction_payload: Optional[Dict[str, np.ndarray]] = None
 
     # Optimize per-SWC thresholds on validation set
     val_result = _evaluate_neural_model(
@@ -1328,6 +1370,12 @@ def _run_mlp_baseline_experiment(
             per_swc_thresholds=tuned_thresholds,
         )
         metrics_by_split[split] = eval_result["metrics"]
+        if split == "test":
+            test_prediction_payload = _build_test_prediction_payload(
+                eval_result=eval_result,
+                swc_ids=config.swc_ids,
+                tuned_thresholds=tuned_thresholds,
+            )
 
     checkpoint_path = (config.models_dir / f"{run['run_id']}.pt").resolve()
     checkpoint_payload = {
@@ -1359,6 +1407,7 @@ def _run_mlp_baseline_experiment(
         "parameter_count": int(model.parameter_count()),
         "split_metrics": metrics_by_split,
         "tuned_thresholds": tuned_thresholds,
+        "test_prediction_payload": test_prediction_payload,
     }
 
 
@@ -1373,6 +1422,12 @@ def _run_codebert_baseline_experiment(
     _set_seed(int(run["seed"]))
     dataset_train = datasets["train"]
     feature_dims = dataset_train.feature_shapes()
+    if int(feature_dims.get("codebert_dim", 0)) <= 0:
+        raise RunUnavailableError(
+            "CodeBERT baseline requires frozen-encoder embeddings "
+            "(`codebert_features.parquet`, columns `cb_*`); the dataset did not load "
+            "them. Generate the parquet with src/features/codebert_features.py first."
+        )
     train_subset = _to_subset(dataset_train, split_indices["train"])
 
     train_loader = DataLoader(
@@ -1385,7 +1440,7 @@ def _run_codebert_baseline_experiment(
     train_iter = iter(train_loader)
 
     model_cfg = CodeBERTClassifierConfig(
-        input_dim=int(feature_dims["opcode_dim"]),
+        input_dim=int(feature_dims["codebert_dim"]),
         hidden1=512,
         hidden2=256,
         num_labels=int(feature_dims["target_dim"]),
@@ -1416,13 +1471,18 @@ def _run_codebert_baseline_experiment(
             train_iter = iter(train_loader)
             batch = next(train_iter)
 
-        opcode_features = batch["opcode_features"].to(device=device, dtype=torch.float32)
+        if "codebert_features" not in batch:
+            raise RunUnavailableError(
+                "Batch is missing `codebert_features`; regenerate the CodeBERT "
+                "embedding parquet before running this baseline."
+            )
+        codebert_features = batch["codebert_features"].to(device=device, dtype=torch.float32)
         targets = batch["targets"].to(device=device, dtype=torch.float32)
         target_mask = batch["target_mask"].to(device=device, dtype=torch.bool)
 
         model.train()
         optimizer.zero_grad(set_to_none=True)
-        logits = model(opcode_features=opcode_features)
+        logits = model(opcode_features=codebert_features)
         loss = masked_bce_with_logits(logits=logits, targets=targets, target_mask=target_mask,
                                       reduction="mean", pos_weight=pos_weight)
         if not torch.isfinite(loss):
@@ -1440,6 +1500,7 @@ def _run_codebert_baseline_experiment(
                     split_name="val", device=device, batch_size=config.batch_size,
                     num_workers=config.num_workers, swc_ids=config.swc_ids,
                     threshold=config.decision_threshold,
+                    feature_key="codebert_features",
                 )
             if stopper.step(float(val_eval["metrics"]["macro_f1"]), step_idx, model.state_dict()):
                 break
@@ -1449,6 +1510,7 @@ def _run_codebert_baseline_experiment(
 
     metrics_by_split: Dict[str, Any] = {}
     tuned_thresholds: Optional[List[float]] = None
+    test_prediction_payload: Optional[Dict[str, np.ndarray]] = None
 
     val_result = _evaluate_neural_model(
         model=model,
@@ -1460,6 +1522,7 @@ def _run_codebert_baseline_experiment(
         num_workers=config.num_workers,
         swc_ids=config.swc_ids,
         threshold=config.decision_threshold,
+        feature_key="codebert_features",
     )
     thr_info = optimize_per_swc_thresholds(
         probabilities=val_result["probabilities"],
@@ -1481,8 +1544,15 @@ def _run_codebert_baseline_experiment(
             swc_ids=config.swc_ids,
             threshold=config.decision_threshold,
             per_swc_thresholds=tuned_thresholds,
+            feature_key="codebert_features",
         )
         metrics_by_split[split] = eval_result["metrics"]
+        if split == "test":
+            test_prediction_payload = _build_test_prediction_payload(
+                eval_result=eval_result,
+                swc_ids=config.swc_ids,
+                tuned_thresholds=tuned_thresholds,
+            )
 
     checkpoint_path = (config.models_dir / "{}.pt".format(run['run_id'])).resolve()
     checkpoint_payload = {
@@ -1513,6 +1583,7 @@ def _run_codebert_baseline_experiment(
         "parameter_count": int(model.parameter_count()),
         "split_metrics": metrics_by_split,
         "tuned_thresholds": tuned_thresholds,
+        "test_prediction_payload": test_prediction_payload,
     }
 
 
@@ -1606,6 +1677,7 @@ def _run_gcn_baseline_experiment(
 
     metrics_by_split: Dict[str, Any] = {}
     tuned_thresholds: Optional[List[float]] = None
+    test_prediction_payload: Optional[Dict[str, np.ndarray]] = None
 
     val_result = _evaluate_neural_model(
         model=model,
@@ -1640,6 +1712,12 @@ def _run_gcn_baseline_experiment(
             per_swc_thresholds=tuned_thresholds,
         )
         metrics_by_split[split] = eval_result["metrics"]
+        if split == "test":
+            test_prediction_payload = _build_test_prediction_payload(
+                eval_result=eval_result,
+                swc_ids=config.swc_ids,
+                tuned_thresholds=tuned_thresholds,
+            )
 
     checkpoint_path = (config.models_dir / "{}.pt".format(run['run_id'])).resolve()
     checkpoint_payload = {
@@ -1669,6 +1747,7 @@ def _run_gcn_baseline_experiment(
         "parameter_count": int(model.parameter_count()),
         "split_metrics": metrics_by_split,
         "tuned_thresholds": tuned_thresholds,
+        "test_prediction_payload": test_prediction_payload,
     }
 
 
@@ -1697,6 +1776,7 @@ def _run_classical_baseline_experiment(
 
     metrics_by_split: Dict[str, Any] = {}
     tuned_thresholds: Optional[List[float]] = None
+    test_prediction_payload: Optional[Dict[str, np.ndarray]] = None
 
     # Optimize per-SWC thresholds on validation set
     val_arrays = _collect_arrays_for_classical(datasets["val"], split_indices["val"])
@@ -1726,6 +1806,12 @@ def _run_classical_baseline_experiment(
             per_swc_thresholds=tuned_thresholds,
         )
         metrics_by_split[split] = eval_result["metrics"]
+        if split == "test":
+            test_prediction_payload = _build_test_prediction_payload(
+                eval_result=eval_result,
+                swc_ids=config.swc_ids,
+                tuned_thresholds=tuned_thresholds,
+            )
 
     checkpoint_path = (config.models_dir / f"{run['run_id']}.pkl").resolve()
     checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1738,6 +1824,7 @@ def _run_classical_baseline_experiment(
         "split_metrics": metrics_by_split,
         "fit_info": model.fit_info,
         "tuned_thresholds": tuned_thresholds,
+        "test_prediction_payload": test_prediction_payload,
     }
 
 
@@ -1774,6 +1861,7 @@ def _run_enriched_classical_experiment(
 
     metrics_by_split: Dict[str, Any] = {}
     tuned_thresholds: Optional[List[float]] = None
+    test_prediction_payload: Optional[Dict[str, np.ndarray]] = None
 
     val_arrays = _collect_arrays_for_classical(datasets["val"], split_indices["val"])
     val_arrays["enriched_features"] = _enrich_classical_arrays(val_arrays, enriched_map)
@@ -1806,6 +1894,12 @@ def _run_enriched_classical_experiment(
             feature_key="enriched_features",
         )
         metrics_by_split[split] = eval_result["metrics"]
+        if split == "test":
+            test_prediction_payload = _build_test_prediction_payload(
+                eval_result=eval_result,
+                swc_ids=config.swc_ids,
+                tuned_thresholds=tuned_thresholds,
+            )
 
     checkpoint_path = (config.models_dir / f"{run['run_id']}.pkl").resolve()
     checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1818,6 +1912,7 @@ def _run_enriched_classical_experiment(
         "split_metrics": metrics_by_split,
         "fit_info": model.fit_info,
         "tuned_thresholds": tuned_thresholds,
+        "test_prediction_payload": test_prediction_payload,
     }
 
 
@@ -1913,6 +2008,7 @@ def _run_gat_baseline_experiment(
 
     metrics_by_split: Dict[str, Any] = {}
     tuned_thresholds: Optional[List[float]] = None
+    test_prediction_payload: Optional[Dict[str, np.ndarray]] = None
 
     val_result = _evaluate_neural_model(
         model=model,
@@ -1947,6 +2043,12 @@ def _run_gat_baseline_experiment(
             per_swc_thresholds=tuned_thresholds,
         )
         metrics_by_split[split] = eval_result["metrics"]
+        if split == "test":
+            test_prediction_payload = _build_test_prediction_payload(
+                eval_result=eval_result,
+                swc_ids=config.swc_ids,
+                tuned_thresholds=tuned_thresholds,
+            )
 
     checkpoint_path = (config.models_dir / "{}.pt".format(run['run_id'])).resolve()
     checkpoint_payload = {
@@ -1977,6 +2079,7 @@ def _run_gat_baseline_experiment(
         "parameter_count": int(model.parameter_count()),
         "split_metrics": metrics_by_split,
         "tuned_thresholds": tuned_thresholds,
+        "test_prediction_payload": test_prediction_payload,
     }
 
 
@@ -2174,6 +2277,7 @@ def _run_bilstm_baseline_experiment(
 
     metrics_by_split: Dict[str, Any] = {}
     tuned_thresholds: Optional[List[float]] = None
+    test_prediction_payload: Optional[Dict[str, np.ndarray]] = None
 
     val_result = _evaluate_bilstm_model(
         model=model,
@@ -2212,6 +2316,12 @@ def _run_bilstm_baseline_experiment(
             max_seq_len=max_seq_len,
         )
         metrics_by_split[split] = eval_result["metrics"]
+        if split == "test":
+            test_prediction_payload = _build_test_prediction_payload(
+                eval_result=eval_result,
+                swc_ids=config.swc_ids,
+                tuned_thresholds=tuned_thresholds,
+            )
 
     checkpoint_path = (config.models_dir / "{}.pt".format(run['run_id'])).resolve()
     checkpoint_payload = {
@@ -2244,6 +2354,7 @@ def _run_bilstm_baseline_experiment(
         "parameter_count": int(model.parameter_count()),
         "split_metrics": metrics_by_split,
         "tuned_thresholds": tuned_thresholds,
+        "test_prediction_payload": test_prediction_payload,
     }
 
 
@@ -2363,6 +2474,10 @@ def _write_run_metrics(
     variant_manifest: Mapping[str, Any],
 ) -> Path:
     metrics_path = (config.metrics_dir / f"{run['run_id']}.json").resolve()
+    prediction_path = _write_test_prediction_artifact(
+        metrics_path=metrics_path,
+        payload=run_output.get("test_prediction_payload"),
+    )
     metrics_payload: Dict[str, Any] = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "run_id": str(run["run_id"]),
@@ -2383,6 +2498,8 @@ def _write_run_metrics(
         "training_losses": [float(x) for x in run_output.get("training_losses", [])],
         "fit_info": run_output.get("fit_info", []),
         "split_metrics": dict(run_output["split_metrics"]),
+        "tuned_thresholds": list(run_output.get("tuned_thresholds") or []),
+        "test_prediction_npz": _rel(prediction_path.resolve()) if prediction_path is not None else None,
         "checkpoint_path": _rel(Path(run_output["checkpoint_path"]).resolve()),
     }
     _write_json(metrics_payload, metrics_path)
@@ -2461,8 +2578,13 @@ def run_experiment_matrix(
     config.models_dir.mkdir(parents=True, exist_ok=True)
     config.checkpoint_root.mkdir(parents=True, exist_ok=True)
 
-    # Load enriched features for XGBoost/RF/LightGBM baselines (if configured)
-    enriched_map = _load_enriched_feature_map(config)
+    # Load enriched features only when the selected matrix actually contains
+    # the enriched classical baselines that consume them.
+    needs_enriched_map = any(
+        baseline_id in {"classical_xgboost", "classical_rf", "classical_lgbm"}
+        for baseline_id in config.baseline_ids
+    )
+    enriched_map = _load_enriched_feature_map(config) if needs_enriched_map else None
 
     # Lazily load opcode token map for BiLSTM (only if BiLSTM is in the baseline list)
     token_map: Optional[Dict[str, List[int]]] = None

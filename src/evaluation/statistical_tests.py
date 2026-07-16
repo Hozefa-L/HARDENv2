@@ -18,6 +18,58 @@ except ImportError:
     HAS_SCIPY = False
 
 
+def _threshold_predictions(
+    *,
+    probabilities: np.ndarray,
+    threshold: float = 0.5,
+    per_swc_thresholds: Optional[Sequence[float]] = None,
+) -> np.ndarray:
+    probs = np.asarray(probabilities, dtype=np.float64)
+    if probs.ndim < 2:
+        raise ValueError("Expected probability array with at least 2 dimensions.")
+    if per_swc_thresholds is not None:
+        thresholds = np.asarray(per_swc_thresholds, dtype=np.float64)
+        if thresholds.shape != (probs.shape[-1],):
+            raise ValueError("`per_swc_thresholds` length must match the label dimension.")
+        reshape_dims = (1,) * (probs.ndim - 1) + (thresholds.shape[0],)
+        return probs >= thresholds.reshape(reshape_dims)
+    if not 0.0 < threshold < 1.0:
+        raise ValueError("`threshold` must be in (0.0, 1.0).")
+    return probs >= float(threshold)
+
+
+def _masked_macro_f1_from_predictions(
+    *,
+    predictions: np.ndarray,
+    targets: np.ndarray,
+    target_mask: np.ndarray,
+) -> np.ndarray:
+    preds = np.asarray(predictions, dtype=bool)
+    truth = np.asarray(targets, dtype=bool)
+    mask = np.asarray(target_mask, dtype=bool)
+    if truth.shape != mask.shape:
+        raise ValueError("`targets` and `target_mask` must have identical shapes.")
+    if preds.shape == truth.shape:
+        truth_expanded = truth
+        mask_expanded = mask
+    elif preds.shape[-2:] == truth.shape:
+        leading_dims = preds.ndim - 2
+        expand_shape = (1,) * leading_dims + truth.shape
+        truth_expanded = truth.reshape(expand_shape)
+        mask_expanded = mask.reshape(expand_shape)
+    else:
+        raise ValueError("Prediction trailing dimensions must match target shape.")
+
+    tp = np.sum(preds & truth_expanded & mask_expanded, axis=-2, dtype=np.int64)
+    fp = np.sum(preds & ~truth_expanded & mask_expanded, axis=-2, dtype=np.int64)
+    fn = np.sum(~preds & truth_expanded & mask_expanded, axis=-2, dtype=np.int64)
+
+    numer = 2.0 * tp.astype(np.float64)
+    denom = numer + fp.astype(np.float64) + fn.astype(np.float64)
+    f1 = np.divide(numer, denom, out=np.zeros_like(numer, dtype=np.float64), where=denom > 0.0)
+    return np.mean(f1, axis=-1, dtype=np.float64)
+
+
 def wilcoxon_signed_rank_test(
     scores_a: Sequence[float],
     scores_b: Sequence[float],
@@ -186,6 +238,179 @@ def pairwise_significance_table(
         "num_comparisons": len(pairs),
         "reference_model": reference_model,
         "comparisons": comparisons,
+    }
+
+
+def masked_macro_f1_from_probabilities(
+    *,
+    probabilities: np.ndarray,
+    targets: np.ndarray,
+    target_mask: np.ndarray,
+    swc_ids: Sequence[int],
+    threshold: float = 0.5,
+    per_swc_thresholds: Optional[Sequence[float]] = None,
+) -> float:
+    probs = np.asarray(probabilities, dtype=np.float64)
+    truth = np.asarray(targets, dtype=np.float64)
+    mask = np.asarray(target_mask, dtype=bool)
+    if probs.shape != truth.shape or probs.shape != mask.shape:
+        raise ValueError("All probability/target/mask arrays must have identical shapes.")
+    if probs.ndim != 2:
+        raise ValueError("Expected rank-2 probability arrays.")
+    if probs.shape[1] != len(swc_ids):
+        raise ValueError("SWC dimension mismatch.")
+
+    preds = _threshold_predictions(
+        probabilities=probs,
+        threshold=threshold,
+        per_swc_thresholds=per_swc_thresholds,
+    )
+    return float(
+        _masked_macro_f1_from_predictions(
+            predictions=preds,
+            targets=truth,
+            target_mask=mask,
+        )
+    )
+
+
+def paired_bootstrap_macro_f1_difference(
+    *,
+    probabilities_a: np.ndarray,
+    probabilities_b: np.ndarray,
+    targets: np.ndarray,
+    target_mask: np.ndarray,
+    swc_ids: Sequence[int],
+    per_swc_thresholds_a: Optional[Sequence[float]] = None,
+    per_swc_thresholds_b: Optional[Sequence[float]] = None,
+    n_bootstrap: int = 5000,
+    ci_alpha: float = 0.05,
+    random_state: int = 0,
+) -> Dict[str, Any]:
+    a = np.asarray(probabilities_a, dtype=np.float64)
+    b = np.asarray(probabilities_b, dtype=np.float64)
+    truth = np.asarray(targets, dtype=np.float64)
+    mask = np.asarray(target_mask, dtype=bool)
+    if a.shape != b.shape or a.shape != truth.shape or a.shape != mask.shape:
+        raise ValueError("All probability/target/mask arrays must have identical shapes.")
+    if a.ndim != 2:
+        raise ValueError("Expected rank-2 probability arrays.")
+    if n_bootstrap <= 0:
+        raise ValueError("n_bootstrap must be positive.")
+    if not 0.0 < ci_alpha < 1.0:
+        raise ValueError("ci_alpha must be in (0, 1).")
+
+    preds_a = _threshold_predictions(
+        probabilities=a,
+        per_swc_thresholds=per_swc_thresholds_a,
+    )
+    preds_b = _threshold_predictions(
+        probabilities=b,
+        per_swc_thresholds=per_swc_thresholds_b,
+    )
+
+    observed = float(
+        _masked_macro_f1_from_predictions(
+            predictions=preds_a,
+            targets=truth,
+            target_mask=mask,
+        )
+        - _masked_macro_f1_from_predictions(
+            predictions=preds_b,
+            targets=truth,
+            target_mask=mask,
+        )
+    )
+
+    rng = np.random.default_rng(random_state)
+    sample_idx = rng.integers(0, a.shape[0], size=(n_bootstrap, a.shape[0]), dtype=np.int64)
+    deltas = _masked_macro_f1_from_predictions(
+        predictions=preds_a[sample_idx],
+        targets=truth[sample_idx],
+        target_mask=mask[sample_idx],
+    ) - _masked_macro_f1_from_predictions(
+        predictions=preds_b[sample_idx],
+        targets=truth[sample_idx],
+        target_mask=mask[sample_idx],
+    )
+
+    lower = float(np.quantile(deltas, ci_alpha / 2.0))
+    upper = float(np.quantile(deltas, 1.0 - ci_alpha / 2.0))
+    return {
+        "observed_difference": float(observed),
+        "ci_alpha": float(ci_alpha),
+        "ci_lower": lower,
+        "ci_upper": upper,
+        "n_bootstrap": int(n_bootstrap),
+    }
+
+
+def paired_permutation_macro_f1_test(
+    *,
+    probabilities_a: np.ndarray,
+    probabilities_b: np.ndarray,
+    targets: np.ndarray,
+    target_mask: np.ndarray,
+    swc_ids: Sequence[int],
+    per_swc_thresholds_a: Optional[Sequence[float]] = None,
+    per_swc_thresholds_b: Optional[Sequence[float]] = None,
+    n_permutations: int = 5000,
+    random_state: int = 0,
+) -> Dict[str, Any]:
+    a = np.asarray(probabilities_a, dtype=np.float64)
+    b = np.asarray(probabilities_b, dtype=np.float64)
+    truth = np.asarray(targets, dtype=np.float64)
+    mask = np.asarray(target_mask, dtype=bool)
+    if a.shape != b.shape or a.shape != truth.shape or a.shape != mask.shape:
+        raise ValueError("All probability/target/mask arrays must have identical shapes.")
+    if a.ndim != 2:
+        raise ValueError("Expected rank-2 probability arrays.")
+    if n_permutations <= 0:
+        raise ValueError("n_permutations must be positive.")
+
+    preds_a = _threshold_predictions(
+        probabilities=a,
+        per_swc_thresholds=per_swc_thresholds_a,
+    )
+    preds_b = _threshold_predictions(
+        probabilities=b,
+        per_swc_thresholds=per_swc_thresholds_b,
+    )
+
+    observed = float(
+        _masked_macro_f1_from_predictions(
+            predictions=preds_a,
+            targets=truth,
+            target_mask=mask,
+        )
+        - _masked_macro_f1_from_predictions(
+            predictions=preds_b,
+            targets=truth,
+            target_mask=mask,
+        )
+    )
+
+    rng = np.random.default_rng(random_state)
+    swap_mask = rng.random((n_permutations, a.shape[0], 1)) < 0.5
+    perm_a = np.where(swap_mask, preds_b[None, :, :], preds_a[None, :, :])
+    perm_b = np.where(swap_mask, preds_a[None, :, :], preds_b[None, :, :])
+    deltas = _masked_macro_f1_from_predictions(
+        predictions=perm_a,
+        targets=truth,
+        target_mask=mask,
+    ) - _masked_macro_f1_from_predictions(
+        predictions=perm_b,
+        targets=truth,
+        target_mask=mask,
+    )
+
+    extreme = int(np.count_nonzero(np.abs(deltas) >= abs(observed)))
+    p_value = float((extreme + 1) / (n_permutations + 1))
+    return {
+        "observed_difference": float(observed),
+        "p_value": p_value,
+        "n_permutations": int(n_permutations),
+        "significant_005": p_value < 0.05,
     }
 
 

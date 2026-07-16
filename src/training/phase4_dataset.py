@@ -27,6 +27,7 @@ class Phase4DatasetConfig:
     graph_features_path: Path
     split_root: Path
     graph_artifacts_dir: Optional[Path] = None  # for GNN mode
+    codebert_features_path: Optional[Path] = None  # optional frozen-encoder embeddings
 
 
 def _resolve_path(path_value: Any) -> Path:
@@ -111,6 +112,11 @@ def _load_dataset_config(config_path: Path) -> Phase4DatasetConfig:
         or phase3_outputs.get("graph_level_features_parquet")
         or "data/features/main_benchmark/graph_level_features.parquet"
     )
+    codebert_features_path = _resolve_path(
+        inputs.get("codebert_features_parquet")
+        or phase3_outputs.get("codebert_features_parquet")
+        or "data/features/main_benchmark/codebert_features.parquet"
+    )
     split_root = _resolve_path(
         inputs.get("split_root") or phase3_inputs.get("split_root") or "data/splits/main_benchmark"
     )
@@ -146,6 +152,7 @@ def _load_dataset_config(config_path: Path) -> Phase4DatasetConfig:
         graph_features_path=graph_features_path,
         split_root=split_root,
         graph_artifacts_dir=graph_artifacts_dir,
+        codebert_features_path=codebert_features_path,
     )
 
 
@@ -343,6 +350,36 @@ class Phase4Dataset(Dataset):
         self.opcode_feature_columns = tfidf_feature_columns + pattern_feature_columns
         self.graph_feature_columns = graph_feature_columns
 
+        # Optional frozen-encoder (CodeBERT) embeddings. The parquet is an
+        # optional artifact; when absent the dataset simply omits the key and
+        # experiments that require it fail with an explicit error.
+        self.codebert_feature_columns: List[str] = []
+        codebert_path = self.config.codebert_features_path
+        if codebert_path is not None and codebert_path.exists():
+            codebert_features = pd.read_parquet(codebert_path).copy()
+            codebert_features[CONTRACT_ID_COLUMN] = (
+                codebert_features[CONTRACT_ID_COLUMN].fillna("").astype(str).str.strip()
+            )
+            codebert_features.drop(
+                codebert_features[codebert_features[CONTRACT_ID_COLUMN] == ""].index,
+                inplace=True,
+            )
+            _assert_unique_contract_ids(codebert_features, "codebert_features")
+            codebert_columns = sorted(
+                [column for column in codebert_features.columns if column.startswith("cb_")]
+            )
+            if not codebert_columns:
+                raise ValueError(
+                    f"CodeBERT features parquet has no `cb_` columns: {codebert_path}"
+                )
+            merged = merged.merge(
+                codebert_features[[CONTRACT_ID_COLUMN, "split"] + codebert_columns],
+                on=[CONTRACT_ID_COLUMN, "split"],
+                how="left",
+                validate="one_to_one",
+            )
+            self.codebert_feature_columns = codebert_columns
+
         if split is not None:
             split_value = str(split).strip()
             if split_value not in set(REQUIRED_SPLITS):
@@ -398,6 +435,12 @@ class Phase4Dataset(Dataset):
             "metadata": metadata,
         }
 
+        if self.codebert_feature_columns:
+            codebert_features = (
+                row[self.codebert_feature_columns].fillna(0.0).astype(float).to_numpy(dtype=np.float32)
+            )
+            result["codebert_features"] = torch.tensor(codebert_features, dtype=torch.float32)
+
         # Load actual graph structure for GNN if available
         contract_id = str(row[CONTRACT_ID_COLUMN])
         graph_path = self._graph_file_cache.get(contract_id)
@@ -432,6 +475,7 @@ class Phase4Dataset(Dataset):
         return {
             "opcode_dim": int(len(self.opcode_feature_columns)),
             "graph_dim": int(len(self.graph_feature_columns)),
+            "codebert_dim": int(len(self.codebert_feature_columns)),
             "target_dim": int(len(self.target_columns)),
         }
 
@@ -460,6 +504,11 @@ def phase4_collate_fn(batch: Sequence[Mapping[str, Any]]) -> Dict[str, Any]:
         "target_mask": torch.stack([item["target_mask"] for item in batch], dim=0),
         "metadata": [dict(item["metadata"]) for item in batch],
     }
+
+    if "codebert_features" in batch[0]:
+        collated["codebert_features"] = torch.stack(
+            [item["codebert_features"] for item in batch], dim=0
+        )
 
     # Batch graph structures for GNN (manual PyG-style batching)
     if "graph_x" in batch[0]:
